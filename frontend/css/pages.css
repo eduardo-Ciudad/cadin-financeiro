@@ -141,3 +141,82 @@
     from { opacity: 0; transform: translateY(8px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ===== RESPONSIVE TABLES — hide less important cols on small screens ===== */
+@media (max-width: 600px) {
+    .table th:nth-child(3),
+    .table td:nth-child(3) { display: none; }
+
+    .section-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .section-actions {
+        width: 100%;
+    }
+
+    .search-box .form-input {
+        width: 100%;
+    }
+
+    .section-actions .btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 480px) {
+    .action-bar {
+        flex-wrap: wrap;
+    }
+
+    .action-bar .spacer {
+        display: none;
+    }
+
+    .action-bar .btn {
+        flex: 1;
+        justify-content: center;
+    }
+
+    .modal {
+        border-radius: var(--radius-lg);
+    }
+
+    .item-row {
+        grid-template-columns: 1fr !important;
+    }
+
+    .item-total {
+        text-align: left;
+        padding: 0 0 var(--space-sm) 0;
+    }
+
+    .toast-container {
+        right: var(--space-sm);
+        left: var(--space-sm);
+    }
+
+    .toast {
+        max-width: 100%;
+    }
+}
+
+/* ===== FOCUS VISIBLE for accessibility ===== */
+:focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 2px;
+}
+
+button:focus:not(:focus-visible),
+a:focus:not(:focus-visible) {
+    outline: none;
+}
+
+/* ===== PRINT ===== */
+@media print {
+    .sidebar, .topbar, .action-bar, .pagination, .btn { display: none !important; }
+    .main-wrapper { margin-left: 0; }
+    .card { box-shadow: none; border: 1px solid #ccc; }
+}

@@ -645,6 +645,12 @@
     grid-template-columns: 1fr auto auto auto;
 }
 
+@media (max-width: 480px) {
+    .item-row {
+        grid-template-columns: 1fr !important;
+    }
+}
+
 .item-total {
     font-family: var(--font-mono);
     font-size: var(--text-sm);
