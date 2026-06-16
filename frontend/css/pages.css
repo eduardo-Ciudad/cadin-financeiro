@@ -1,0 +1,143 @@
+/* ===== AUTH PAGE (LOGIN) ===== */
+.auth-body {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 100vh;
+    padding: var(--space-lg);
+    background-color: var(--bg-primary);
+    background-image:
+        radial-gradient(ellipse at 20% 50%, rgba(16,185,129,0.06) 0%, transparent 50%),
+        radial-gradient(ellipse at 80% 20%, rgba(59,130,246,0.05) 0%, transparent 50%);
+}
+
+.auth-container {
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-card {
+    background-color: var(--bg-secondary);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-xl);
+    padding: var(--space-2xl);
+    box-shadow: var(--shadow-lg);
+}
+
+.auth-logo {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: var(--space-xl);
+    text-align: center;
+    gap: var(--space-sm);
+}
+
+.auth-logo img {
+    width: 52px;
+    height: 52px;
+}
+
+.auth-title {
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0;
+}
+
+.auth-subtitle {
+    font-size: var(--text-sm);
+    color: var(--text-muted);
+    margin: 0;
+}
+
+.auth-form {
+    display: flex;
+    flex-direction: column;
+}
+
+/* ===== DASHBOARD PAGE ===== */
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: var(--space-lg);
+    margin-bottom: var(--space-xl);
+}
+
+.devedores-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+}
+
+.devedor-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: var(--space-sm) var(--space-md);
+    background-color: var(--bg-tertiary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border);
+    gap: var(--space-md);
+}
+
+.devedor-name {
+    font-size: var(--text-sm);
+    font-weight: 500;
+    color: var(--text-primary);
+    flex: 1;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.devedor-saldo {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--danger);
+    flex-shrink: 0;
+}
+
+/* ===== CLIENTES / FORNECEDORES PAGES ===== */
+.back-btn-row {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+.back-btn-row h3 {
+    margin: 0;
+}
+
+/* ===== PRODUTOS PAGE ===== */
+.estoque-card {
+    border-left: 4px solid var(--info);
+}
+
+/* ===== RESPONSIVE TABLES ===== */
+@media (max-width: 640px) {
+    .table th:nth-child(3),
+    .table td:nth-child(3) { display: none; }
+}
+
+@media (max-width: 480px) {
+    .auth-card {
+        padding: var(--space-lg);
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* ===== PAGE TRANSITIONS ===== */
+.main-content > section {
+    animation: fadeIn var(--transition-base) ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
