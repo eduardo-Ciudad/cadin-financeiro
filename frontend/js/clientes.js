@@ -295,7 +295,7 @@
             return '<tr' + (isEstornado ? ' style="opacity:0.5"' : '') + '>' +
                 '<td class="text-mono text-sm">' + formatDate(item.data || item.dataCompetencia) + '</td>' +
                 '<td>' + categoriaBadge(item.categoria) + '</td>' +
-                '<td class="text-secondary">' + escapeHtml(item.descricao || '—') + '</td>' +
+                '<td class="text-secondary desc-cell" data-lanc-id="' + item.id + '" data-cat="' + item.categoria + '">' + escapeHtml(item.descricao || '—') + '</td>'  +
                 '<td class="text-right font-mono ' + valorColor + '">' +
                 valorPrefix + formatMoney(valorAbs) +
                 '</td>' +
@@ -318,6 +318,19 @@
                 );
             });
         });
+
+        // Busca itens das compras para exibir quantidades
+tbody.querySelectorAll('[data-cat="COMPRA"]').forEach(function(cell) {
+    var lancId = cell.getAttribute('data-lanc-id');
+    api.get('/lancamentos/' + lancId).then(function(lanc) {
+        if (lanc.itens && lanc.itens.length) {
+            cell.innerHTML = lanc.itens.map(function(i) {
+                return parseFloat(i.quantidade) + 'x ' + escapeHtml(i.nomeProduto);
+            }).join(', ');
+        }
+    }).catch(function() {});
+});
+
     }
 
     async function estornar(lancamentoId) {
