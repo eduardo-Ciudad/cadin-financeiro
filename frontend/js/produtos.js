@@ -22,33 +22,33 @@
     function renderListSection() {
         mainContent.innerHTML =
             '<section id="listaSection">' +
-                '<div class="section-header">' +
-                    '<h2 style="margin:0">Produtos</h2>' +
-                    '<div class="section-actions">' +
-                        '<div class="search-box">' +
-                            '<svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
-                                '<circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>' +
-                            '</svg>' +
-                            '<input type="search" id="searchInput" class="form-input" placeholder="Buscar produto...">' +
-                        '</div>' +
-                        '<button class="btn btn-primary" id="btnNovoProduto">+ Novo Produto</button>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="card">' +
-                    '<div class="table-wrapper">' +
-                        '<table class="table">' +
-                            '<thead><tr>' +
-                                '<th>Nome</th>' +
-                                '<th class="text-right">Preço de Venda</th>' +
-                                '<th class="text-right">Estoque</th>' +
-                                '<th class="text-right">Valor em Estoque</th>' +
-                                '<th>Status</th>' +
-                            '</tr></thead>' +
-                            '<tbody id="produtosTableBody">' + skeletonRows(5) + '</tbody>' +
-                        '</table>' +
-                    '</div>' +
-                    '<div id="produtosPagination"></div>' +
-                '</div>' +
+            '<div class="section-header">' +
+            '<h2 style="margin:0">Produtos</h2>' +
+            '<div class="section-actions">' +
+            '<div class="search-box">' +
+            '<svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+            '<circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>' +
+            '</svg>' +
+            '<input type="search" id="searchInput" class="form-input" placeholder="Buscar produto...">' +
+            '</div>' +
+            '<button class="btn btn-primary" id="btnNovoProduto">+ Novo Produto</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="card">' +
+            '<div class="table-wrapper">' +
+            '<table class="table">' +
+            '<thead><tr>' +
+            '<th>Nome</th>' +
+            '<th class="text-right">Preço de Venda</th>' +
+            '<th class="text-right">Estoque</th>' +
+            '<th class="text-right">Valor em Estoque</th>' +
+            '<th>Status</th>' +
+            '</tr></thead>' +
+            '<tbody id="produtosTableBody">' + skeletonRows(5) + '</tbody>' +
+            '</table>' +
+            '</div>' +
+            '<div id="produtosPagination"></div>' +
+            '</div>' +
             '</section>' +
             '<section id="detalheSection" class="hidden"></section>';
 
@@ -93,18 +93,19 @@
             return;
         }
         tbody.innerHTML = produtos.map(function (p) {
-            var estoque = p.quantidadeEstoque || p.estoque || 0;
-            var valorEstoque = estoque * (p.precoVenda || 0);
+            
+            var estoque = parseFloat(p.quantidadeAtual) || 0;
+var valorEstoque = parseFloat(p.valorEmEstoque) || 0;
             var estoqueColor = estoque <= 0 ? 'text-danger' : estoque < 5 ? 'text-warning' : '';
             return '<tr class="clickable" data-id="' + p.id + '">' +
                 '<td><strong>' + escapeHtml(p.nome) + '</strong>' +
-                    (p.descricao ? '<br><small class="text-muted">' + escapeHtml(p.descricao) + '</small>' : '') +
+                (p.descricao ? '<br><small class="text-muted">' + escapeHtml(p.descricao) + '</small>' : '') +
                 '</td>' +
                 '<td class="text-right font-mono">' + formatMoney(p.precoVenda || 0) + '</td>' +
                 '<td class="text-right font-mono ' + estoqueColor + '">' + estoque + '</td>' +
                 '<td class="text-right font-mono">' + formatMoney(valorEstoque) + '</td>' +
                 '<td>' + statusBadge(p.ativo !== false) + '</td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
 
         tbody.querySelectorAll('tr.clickable').forEach(function (row) {
@@ -139,51 +140,52 @@
 
     function renderDetalhe(produto, estoqueData) {
         var detalhe = document.getElementById('detalheSection');
-        var qtd = estoqueData ? (estoqueData.quantidade || estoqueData.quantidadeEstoque || 0) : (produto.quantidadeEstoque || 0);
-        var valor = qtd * (produto.precoVenda || 0);
+        // CORRETO
+        var qtd = parseFloat(estoqueData ? estoqueData.quantidadeAtual : produto.quantidadeAtual) || 0;
+var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorEmEstoque) || 0;
         var estoqueColor = qtd <= 0 ? 'text-danger' : qtd < 5 ? 'text-warning' : 'text-success';
 
         detalhe.innerHTML =
             '<div class="back-btn-row">' +
-                '<button class="btn btn-secondary btn-sm" id="btnVoltar">← Voltar</button>' +
-                '<h3>' + escapeHtml(produto.nome) + '</h3>' +
+            '<button class="btn btn-secondary btn-sm" id="btnVoltar">← Voltar</button>' +
+            '<h3>' + escapeHtml(produto.nome) + '</h3>' +
             '</div>' +
 
             '<div class="detail-grid">' +
-                // Info card
-                '<div class="card">' +
-                    '<div class="card-header">' +
-                        '<h4>Dados do Produto</h4>' +
-                        '<button class="btn btn-secondary btn-sm" id="btnEditar">Editar</button>' +
-                    '</div>' +
-                    '<div class="card-body">' +
-                        '<div class="info-grid">' +
-                            infoItem('Nome', produto.nome) +
-                            infoItem('Descrição', produto.descricao) +
-                            infoItem('Preço de Venda', formatMoney(produto.precoVenda || 0)) +
-                            infoItem('Status', produto.ativo !== false ? 'Ativo' : 'Inativo') +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
+            // Info card
+            '<div class="card">' +
+            '<div class="card-header">' +
+            '<h4>Dados do Produto</h4>' +
+            '<button class="btn btn-secondary btn-sm" id="btnEditar">Editar</button>' +
+            '</div>' +
+            '<div class="card-body">' +
+            '<div class="info-grid">' +
+            infoItem('Nome', produto.nome) +
+            infoItem('Descrição', produto.descricao) +
+            infoItem('Preço de Venda', formatMoney(produto.precoVenda || 0)) +
+            infoItem('Status', produto.ativo !== false ? 'Ativo' : 'Inativo') +
+            '</div>' +
+            '</div>' +
+            '</div>' +
 
-                // Estoque card
-                '<div class="card estoque-card">' +
-                    '<div class="card-body" style="text-align:center;padding:var(--space-xl)">' +
-                        '<div class="stat-label">Estoque Atual</div>' +
-                        '<div class="saldo-value ' + estoqueColor + '">' + qtd + ' un.</div>' +
-                        '<div class="stat-label mt-md">Valor em Estoque</div>' +
-                        '<div class="font-mono text-lg">' + formatMoney(valor) + '</div>' +
-                    '</div>' +
-                '</div>' +
+            // Estoque card
+            '<div class="card estoque-card">' +
+            '<div class="card-body" style="text-align:center;padding:var(--space-xl)">' +
+            '<div class="stat-label">Estoque Atual</div>' +
+            '<div class="saldo-value ' + estoqueColor + '">' + parseFloat(qtd) + ' un.</div>' +
+            '<div class="stat-label mt-md">Valor em Estoque</div>' +
+            '<div class="font-mono text-lg">' + formatMoney(valor) + '</div>' +
+            '</div>' +
+            '</div>' +
             '</div>' +
 
             // Action bar
             '<div class="action-bar">' +
-                '<button class="btn btn-primary" id="btnAjuste">Ajustar Estoque</button>' +
-                '<div class="spacer"></div>' +
-                '<button class="btn btn-danger btn-sm" id="btnInativar">' +
-                    (produto.ativo !== false ? 'Inativar' : 'Reativar') +
-                '</button>' +
+            '<button class="btn btn-primary" id="btnAjuste">Ajustar Estoque</button>' +
+            '<div class="spacer"></div>' +
+            '<button class="btn btn-danger btn-sm" id="btnInativar">' +
+            (produto.ativo !== false ? 'Inativar' : 'Reativar') +
+            '</button>' +
             '</div>';
 
         document.getElementById('btnVoltar').addEventListener('click', voltarLista);
@@ -212,7 +214,7 @@
         return '<div class="info-item">' +
             '<div class="info-item-label">' + label + '</div>' +
             '<div class="info-item-value">' + escapeHtml(value || '—') + '</div>' +
-        '</div>';
+            '</div>';
     }
 
     /* ===========================
@@ -224,7 +226,7 @@
             formGroup('nome', 'Nome *', 'text', produto.nome, 'Nome do produto') +
             formGroup('descricao', 'Descrição', 'text', produto.descricao, 'Descrição opcional') +
             formGroup('precoVenda', 'Preço de Venda *', 'number', produto.precoVenda, '0.00') +
-        '</form>';
+            '</form>';
     }
 
     function formGroup(id, label, type, value, placeholder) {
@@ -232,11 +234,11 @@
         return '<div class="form-group">' +
             '<label class="form-label" for="' + id + '">' + label + '</label>' +
             '<input class="form-input" type="' + type + '" id="' + id + '" name="' + id + '"' +
-                step +
-                ' value="' + escapeHtml(value != null ? String(value) : '') + '"' +
-                ' placeholder="' + escapeHtml(placeholder || '') + '">' +
+            step +
+            ' value="' + escapeHtml(value != null ? String(value) : '') + '"' +
+            ' placeholder="' + escapeHtml(placeholder || '') + '">' +
             '<span class="form-error" id="' + id + 'Error"></span>' +
-        '</div>';
+            '</div>';
     }
 
     function openModalNovoProduto() {
@@ -265,8 +267,8 @@
         setButtonLoading(btn, true);
 
         var body = {
-            nome:       document.getElementById('nome').value.trim(),
-            descricao:  document.getElementById('descricao').value.trim(),
+            nome: document.getElementById('nome').value.trim(),
+            descricao: document.getElementById('descricao').value.trim(),
             precoVenda: parseFloat(document.getElementById('precoVenda').value),
         };
 
@@ -306,22 +308,22 @@
     function openModalAjusteEstoque(produtoId) {
         var body =
             '<form id="formAjuste" novalidate>' +
-                '<div class="form-group">' +
-                    '<label class="form-label">Tipo *</label>' +
-                    '<select class="form-select" id="tipoAjuste">' +
-                        '<option value="ENTRADA">Entrada (adicionar)</option>' +
-                        '<option value="SAIDA">Saída (remover)</option>' +
-                    '</select>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="form-label">Quantidade *</label>' +
-                    '<input class="form-input" type="number" id="quantidadeAjuste" min="1" step="1" placeholder="0">' +
-                    '<span class="form-error" id="quantidadeAjusteError"></span>' +
-                '</div>' +
-                '<div class="form-group">' +
-                    '<label class="form-label">Motivo</label>' +
-                    '<input class="form-input" type="text" id="motivoAjuste" placeholder="Opcional">' +
-                '</div>' +
+            '<div class="form-group">' +
+            '<label class="form-label">Tipo *</label>' +
+            '<select class="form-select" id="tipoAjuste">' +
+            '<option value="ENTRADA">Entrada (adicionar)</option>' +
+            '<option value="SAIDA">Saída (remover)</option>' +
+            '</select>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="form-label">Quantidade *</label>' +
+            '<input class="form-input" type="number" id="quantidadeAjuste" min="1" step="1" placeholder="0">' +
+            '<span class="form-error" id="quantidadeAjusteError"></span>' +
+            '</div>' +
+            '<div class="form-group">' +
+            '<label class="form-label">Motivo</label>' +
+            '<input class="form-input" type="text" id="motivoAjuste" placeholder="Opcional">' +
+            '</div>' +
             '</form>';
 
         var footer =
@@ -339,9 +341,9 @@
         setButtonLoading(btn, true);
 
         var body = {
-            tipo:       overlay.querySelector('#tipoAjuste').value,
+            tipo: overlay.querySelector('#tipoAjuste').value,
             quantidade: parseFloat(overlay.querySelector('#quantidadeAjuste').value),
-            motivo:     overlay.querySelector('#motivoAjuste').value.trim(),
+            motivo: overlay.querySelector('#motivoAjuste').value.trim(),
         };
 
         if (!body.quantidade || body.quantidade < 1) {
