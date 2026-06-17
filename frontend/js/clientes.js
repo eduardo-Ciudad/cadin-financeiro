@@ -29,34 +29,34 @@
     function renderListSection() {
         mainContent.innerHTML =
             '<section id="listaSection">' +
-                '<div class="section-header">' +
-                    '<h2 style="margin:0">Clientes</h2>' +
-                    '<div class="section-actions">' +
-                        '<div class="search-box">' +
-                            '<svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
-                                '<circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>' +
-                            '</svg>' +
-                            '<input type="search" id="searchInput" class="form-input" placeholder="Buscar cliente...">' +
-                        '</div>' +
-                        '<button class="btn btn-primary" id="btnNovoCliente">+ Novo Cliente</button>' +
-                    '</div>' +
-                '</div>' +
-                '<div class="card">' +
-                    '<div class="table-wrapper">' +
-                        '<table class="table">' +
-                            '<thead><tr>' +
-                                '<th>Nome</th>' +
-                                '<th>Documento</th>' +
-                                '<th>Telefone</th>' +
-                                '<th>Status</th>' +
-                            '</tr></thead>' +
-                            '<tbody id="clientesTableBody">' +
-                                skeletonRows(4) +
-                            '</tbody>' +
-                        '</table>' +
-                    '</div>' +
-                    '<div id="clientesPagination"></div>' +
-                '</div>' +
+            '<div class="section-header">' +
+            '<h2 style="margin:0">Clientes</h2>' +
+            '<div class="section-actions">' +
+            '<div class="search-box">' +
+            '<svg class="search-icon" width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24">' +
+            '<circle cx="11" cy="11" r="8"/><path stroke-linecap="round" d="M21 21l-4.35-4.35"/>' +
+            '</svg>' +
+            '<input type="search" id="searchInput" class="form-input" placeholder="Buscar cliente...">' +
+            '</div>' +
+            '<button class="btn btn-primary" id="btnNovoCliente">+ Novo Cliente</button>' +
+            '</div>' +
+            '</div>' +
+            '<div class="card">' +
+            '<div class="table-wrapper">' +
+            '<table class="table">' +
+            '<thead><tr>' +
+            '<th>Nome</th>' +
+            '<th>Documento</th>' +
+            '<th>Telefone</th>' +
+            '<th>Status</th>' +
+            '</tr></thead>' +
+            '<tbody id="clientesTableBody">' +
+            skeletonRows(4) +
+            '</tbody>' +
+            '</table>' +
+            '</div>' +
+            '<div id="clientesPagination"></div>' +
+            '</div>' +
             '</section>' +
             '<section id="detalheSection" class="hidden"></section>';
 
@@ -106,7 +106,7 @@
                 '<td>' + escapeHtml(c.documento || '—') + '</td>' +
                 '<td>' + escapeHtml(c.telefone || '—') + '</td>' +
                 '<td>' + statusBadge(c.ativo !== false) + '</td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
 
         tbody.querySelectorAll('tr.clickable').forEach(function (row) {
@@ -154,66 +154,66 @@
 
         detalhe.innerHTML =
             '<div class="back-btn-row">' +
-                '<button class="btn btn-secondary btn-sm" id="btnVoltar">← Voltar</button>' +
-                '<h3>' + escapeHtml(cliente.nome) + '</h3>' +
+            '<button class="btn btn-secondary btn-sm" id="btnVoltar">← Voltar</button>' +
+            '<h3>' + escapeHtml(cliente.nome) + '</h3>' +
             '</div>' +
 
             '<div class="detail-grid">' +
-                // Info card
-                '<div class="card">' +
-                    '<div class="card-header">' +
-                        '<h4>Dados Cadastrais</h4>' +
-                        '<button class="btn btn-secondary btn-sm" id="btnEditar">Editar</button>' +
-                    '</div>' +
-                    '<div class="card-body">' +
-                        '<div class="info-grid">' +
-                            infoItem('Nome', cliente.nome) +
-                            infoItem('Documento', cliente.documento) +
-                            infoItem('Telefone', cliente.telefone) +
-                            infoItem('E-mail', cliente.email) +
-                            infoItem('Endereço', cliente.endereco) +
-                            infoItem('Cadastrado em', formatDate(cliente.criadoEm || cliente.dataCadastro)) +
-                        '</div>' +
-                    '</div>' +
-                '</div>' +
+            // Info card
+            '<div class="card">' +
+            '<div class="card-header">' +
+            '<h4>Dados Cadastrais</h4>' +
+            '<button class="btn btn-secondary btn-sm" id="btnEditar">Editar</button>' +
+            '</div>' +
+            '<div class="card-body">' +
+            '<div class="info-grid">' +
+            infoItem('Nome', cliente.nome) +
+            infoItem('Documento', cliente.documento) +
+            infoItem('Telefone', cliente.telefone) +
+            infoItem('E-mail', cliente.email) +
+            infoItem('Endereço', cliente.endereco) +
+            infoItem('Cadastrado em', formatDate(cliente.criadoEm || cliente.dataCadastro)) +
+            '</div>' +
+            '</div>' +
+            '</div>' +
 
-                // Saldo card
-                '<div class="card saldo-card ' + saldoClass + '">' +
-                    '<div class="card-body" style="text-align:center;padding:var(--space-xl)">' +
-                        '<div class="stat-label">Saldo</div>' +
-                        '<div class="saldo-value ' + saldoColor + '">' + formatMoney(valorSaldo) + '</div>' +
-                        '<div style="margin-top:var(--space-md)">' + situacaoBadge(situacao) + '</div>' +
-                    '</div>' +
-                '</div>' +
+            // Saldo card
+            '<div class="card saldo-card ' + saldoClass + '">' +
+            '<div class="card-body" style="text-align:center;padding:var(--space-xl)">' +
+            '<div class="stat-label">Saldo</div>' +
+            '<div class="saldo-value ' + saldoColor + '">' + formatMoney(valorSaldo) + '</div>' +
+            '<div style="margin-top:var(--space-md)">' + situacaoBadge(situacao) + '</div>' +
+            '</div>' +
+            '</div>' +
             '</div>' +
 
             // Action bar
             '<div class="action-bar">' +
-                '<button class="btn btn-primary" id="btnCompra">Registrar Compra</button>' +
-                '<button class="btn btn-secondary" id="btnPagamento">Registrar Pagamento</button>' +
-                '<div class="spacer"></div>' +
-                '<button class="btn btn-danger btn-sm" id="btnInativar">' +
-                    (cliente.ativo !== false ? 'Inativar' : 'Reativar') +
-                '</button>' +
+            '<button class="btn btn-primary" id="btnCompra">Registrar Compra</button>' +
+            '<button class="btn btn-secondary" id="btnPagamento">Registrar Pagamento</button>' +
+            '<div class="spacer"></div>' +
+            '<button class="btn btn-danger btn-sm" id="btnInativar">' +
+            (cliente.ativo !== false ? 'Inativar' : 'Reativar') +
+            '</button>' +
             '</div>' +
 
             // Extrato
             '<div class="card">' +
-                '<div class="card-header"><h4>Extrato</h4></div>' +
-                '<div class="table-wrapper">' +
-                    '<table class="table">' +
-                        '<thead><tr>' +
-                            '<th>Data</th>' +
-                            '<th>Categoria</th>' +
-                            '<th>Descrição</th>' +
-                            '<th class="text-right">Valor</th>' +
-                            '<th class="text-right">Saldo</th>' +
-                            '<th></th>' +
-                        '</tr></thead>' +
-                        '<tbody id="extratoTableBody">' + skeletonRows(6) + '</tbody>' +
-                    '</table>' +
-                '</div>' +
-                '<div id="extratoPagination"></div>' +
+            '<div class="card-header"><h4>Extrato</h4></div>' +
+            '<div class="table-wrapper">' +
+            '<table class="table">' +
+            '<thead><tr>' +
+            '<th>Data</th>' +
+            '<th>Categoria</th>' +
+            '<th>Descrição</th>' +
+            '<th class="text-right">Valor</th>' +
+            '<th class="text-right">Saldo</th>' +
+            '<th></th>' +
+            '</tr></thead>' +
+            '<tbody id="extratoTableBody">' + skeletonRows(6) + '</tbody>' +
+            '</table>' +
+            '</div>' +
+            '<div id="extratoPagination"></div>' +
             '</div>';
 
         // Event bindings
@@ -247,7 +247,7 @@
         return '<div class="info-item">' +
             '<div class="info-item-label">' + label + '</div>' +
             '<div class="info-item-value">' + escapeHtml(value || '—') + '</div>' +
-        '</div>';
+            '</div>';
     }
 
     /* ===========================
@@ -297,15 +297,15 @@
                 '<td>' + categoriaBadge(item.categoria) + '</td>' +
                 '<td class="text-secondary">' + escapeHtml(item.descricao || '—') + '</td>' +
                 '<td class="text-right font-mono ' + valorColor + '">' +
-                    valorPrefix + formatMoney(valorAbs) +
+                valorPrefix + formatMoney(valorAbs) +
                 '</td>' +
                 '<td class="text-right font-mono ' + saldoColor + '">' + formatMoney(item.saldoAcumulado || 0) + '</td>' +
                 '<td class="text-right">' +
-                    (!isEstornado && item.id
-                        ? '<button class="btn btn-ghost btn-sm" data-id="' + item.id + '" title="Estornar">↩ Estornar</button>'
-                        : '') +
+                (!isEstornado && item.id
+                    ? '<button class="btn btn-ghost btn-sm" data-id="' + item.id + '" title="Estornar">↩ Estornar</button>'
+                    : '') +
                 '</td>' +
-            '</tr>';
+                '</tr>';
         }).join('');
 
         tbody.querySelectorAll('[data-id]').forEach(function (btn) {
@@ -345,12 +345,12 @@
                 saldoCard.className = 'card saldo-card ' + saldoClass;
                 saldoCard.innerHTML =
                     '<div class="card-body" style="text-align:center;padding:var(--space-xl)">' +
-                        '<div class="stat-label">Saldo</div>' +
-                        '<div class="saldo-value ' + saldoColor + '">' + formatMoney(valor) + '</div>' +
-                        '<div style="margin-top:var(--space-md)">' + situacaoBadge(situacao) + '</div>' +
+                    '<div class="stat-label">Saldo</div>' +
+                    '<div class="saldo-value ' + saldoColor + '">' + formatMoney(valor) + '</div>' +
+                    '<div style="margin-top:var(--space-md)">' + situacaoBadge(situacao) + '</div>' +
                     '</div>';
             }
-        } catch (_) {}
+        } catch (_) { }
     }
 
     /* ===========================
@@ -364,17 +364,17 @@
             formGroup('telefone', 'Telefone', 'tel', cliente.telefone, '(11) 99999-9999') +
             formGroup('email', 'E-mail', 'email', cliente.email, 'joao@email.com') +
             formGroup('endereco', 'Endereço', 'text', cliente.endereco, 'Rua Exemplo, 123') +
-        '</form>';
+            '</form>';
     }
 
     function formGroup(id, label, type, value, placeholder) {
         return '<div class="form-group">' +
             '<label class="form-label" for="' + id + '">' + label + '</label>' +
             '<input class="form-input" type="' + type + '" id="' + id + '" name="' + id + '"' +
-                ' value="' + escapeHtml(value || '') + '"' +
-                ' placeholder="' + escapeHtml(placeholder || '') + '">' +
+            ' value="' + escapeHtml(value || '') + '"' +
+            ' placeholder="' + escapeHtml(placeholder || '') + '">' +
             '<span class="form-error" id="' + id + 'Error"></span>' +
-        '</div>';
+            '</div>';
     }
 
     function openModalNovoCliente() {
@@ -403,11 +403,11 @@
         setButtonLoading(btn, true);
 
         var body = {
-            nome:      document.getElementById('nome').value.trim(),
+            nome: document.getElementById('nome').value.trim(),
             documento: document.getElementById('documento').value.trim(),
-            telefone:  document.getElementById('telefone').value.trim(),
-            email:     document.getElementById('email').value.trim(),
-            endereco:  document.getElementById('endereco').value.trim(),
+            telefone: document.getElementById('telefone').value.trim(),
+            email: document.getElementById('email').value.trim(),
+            endereco: document.getElementById('endereco').value.trim(),
         };
 
         try {
@@ -449,7 +449,7 @@
             try {
                 var res = await api.get('/produtos?size=200&ativo=true');
                 state.produtos = Array.isArray(res) ? res : (res.content || []);
-            } catch (_) {}
+            } catch (_) { }
         }
 
         var body = buildCompraForm(false);
@@ -470,21 +470,21 @@
     function buildCompraForm(isFornecedor) {
         return '<form id="formCompra" novalidate>' +
             '<div class="form-group">' +
-                '<label class="form-label">Data de Competência *</label>' +
-                '<input class="form-input" type="date" id="dataCompetencia" value="' + todayISO() + '">' +
-                '<span class="form-error" id="dataCompetenciaError"></span>' +
+            '<label class="form-label">Data de Competência *</label>' +
+            '<input class="form-input" type="date" id="dataCompetencia" value="' + todayISO() + '">' +
+            '<span class="form-error" id="dataCompetenciaError"></span>' +
             '</div>' +
             '<div class="form-group">' +
-                '<label class="form-label">Descrição</label>' +
-                '<input class="form-input" type="text" id="descricao" placeholder="Opcional">' +
+            '<label class="form-label">Descrição</label>' +
+            '<input class="form-input" type="text" id="descricao" placeholder="Opcional">' +
             '</div>' +
             '<div class="form-group">' +
-                '<label class="form-label">Itens *</label>' +
-                '<div class="item-list" id="itemList"></div>' +
-                '<button type="button" class="btn btn-secondary btn-sm mt-sm" id="btnAdicionarItem">+ Adicionar Item</button>' +
+            '<label class="form-label">Itens *</label>' +
+            '<div class="item-list" id="itemList"></div>' +
+            '<button type="button" class="btn btn-secondary btn-sm mt-sm" id="btnAdicionarItem">+ Adicionar Item</button>' +
             '</div>' +
             '<div class="compra-total" id="compraTotal">Total: <span>R$ 0,00</span></div>' +
-        '</form>';
+            '</form>';
     }
 
     function addItemRow(overlay) {
@@ -499,12 +499,12 @@
         row.className = 'item-row';
         row.innerHTML =
             '<div class="form-group" style="margin:0">' +
-                '<select class="form-select item-produto" data-idx="' + idx + '">' +
-                    '<option value="">Selecione...</option>' + prodOptions +
-                '</select>' +
+            '<select class="form-select item-produto" data-idx="' + idx + '">' +
+            '<option value="">Selecione...</option>' + prodOptions +
+            '</select>' +
             '</div>' +
             '<div class="form-group" style="margin:0">' +
-                '<input class="form-input item-qtd" type="number" min="1" value="1" style="width:80px" placeholder="Qtd">' +
+            '<input class="form-input item-qtd" type="number" min="1" value="1" style="width:80px" placeholder="Qtd">' +
             '</div>' +
             '<div class="item-total" id="itemTotal' + idx + '">R$ 0,00</div>' +
             '<button type="button" class="btn btn-ghost btn-icon item-remove" title="Remover">✕</button>';
@@ -598,32 +598,30 @@
     function formPagamentoHtml() {
         return '<form id="formPagamento" novalidate>' +
             '<div class="form-group">' +
-                '<label class="form-label">Valor *</label>' +
-                '<input class="form-input font-mono" type="number" id="valor" min="0.01" step="0.01" placeholder="0,00">' +
-                '<span class="form-error" id="valorError"></span>' +
+            '<label class="form-label">Valor *</label>' +
+            '<input class="form-input font-mono" type="number" id="valor" min="0.01" step="0.01" placeholder="0,00">' +
+            '<span class="form-error" id="valorError"></span>' +
             '</div>' +
             '<div class="form-group">' +
-                '<label class="form-label">Data *</label>' +
-                '<input class="form-input" type="date" id="data" value="' + todayISO() + '">' +
-                '<span class="form-error" id="dataError"></span>' +
+            '<label class="form-label">Data *</label>' +
+            '<input class="form-input" type="date" id="data" value="' + todayISO() + '">' +
+            '<span class="form-error" id="dataError"></span>' +
             '</div>' +
             '<div class="form-group">' +
-                '<label class="form-label">Forma de Pagamento</label>' +
-                '<select class="form-select" id="formaPagamento">' +
-                    '<option value="DINHEIRO">Dinheiro</option>' +
-                    '<option value="PIX">PIX</option>' +
-                    '<option value="CARTAO_DEBITO">Cartão de Débito</option>' +
-                    '<option value="CARTAO_CREDITO">Cartão de Crédito</option>' +
-                    '<option value="TRANSFERENCIA">Transferência</option>' +
-                    '<option value="BOLETO">Boleto</option>' +
-                    '<option value="CHEQUE">Cheque</option>' +
-                '</select>' +
+            '<label class="form-label">Forma de Pagamento</label>' +
+            '<select class="form-select" id="formaPagamento">' +
+            '<option value="DINHEIRO">Dinheiro</option>' +
+            '<option value="PIX">PIX</option>' +
+            '<option value="CARTAO">Cartão</option>' +
+            '<option value="BOLETO">Boleto</option>' +
+            '<option value="OUTRO">Outro</option>' +
+            '</select>' +
             '</div>' +
             '<div class="form-group">' +
-                '<label class="form-label">Descrição</label>' +
-                '<input class="form-input" type="text" id="descricaoPag" placeholder="Opcional">' +
+            '<label class="form-label">Descrição</label>' +
+            '<input class="form-input" type="text" id="descricaoPag" placeholder="Opcional">' +
             '</div>' +
-        '</form>';
+            '</form>';
     }
 
     async function salvarPagamento(entityId, overlay, isFornecedor) {
@@ -632,8 +630,8 @@
         setButtonLoading(btn, true);
 
         var body = {
-            valor: parseFloat(overlay.querySelector('#valor').value),
-            data: overlay.querySelector('#data').value,
+            valor: overlay.querySelector('#valor').value,
+            dataCompetencia: overlay.querySelector('#data').value,
             formaPagamento: overlay.querySelector('#formaPagamento').value,
             descricao: overlay.querySelector('#descricaoPag').value.trim(),
         };
