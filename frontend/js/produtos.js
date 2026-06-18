@@ -143,7 +143,8 @@
         var detalhe = document.getElementById('detalheSection');
         // CORRETO
         var qtd = parseFloat(estoqueData ? estoqueData.quantidadeAtual : produto.quantidadeAtual) || 0;
-var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorEmEstoque) || 0;
+        var valorVenda = parseFloat(produto.valorVendaEmEstoque) || 0;
+var valorCompra = parseFloat(produto.valorCompraEmEstoque) || 0;
         var estoqueColor = qtd <= 0 ? 'text-danger' : qtd < 5 ? 'text-warning' : 'text-success';
 
         detalhe.innerHTML =
@@ -177,8 +178,10 @@ var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorE
             '<div class="card-body" style="text-align:center;padding:var(--space-xl)">' +
             '<div class="stat-label">Estoque Atual</div>' +
             '<div class="saldo-value ' + estoqueColor + '">' + parseFloat(qtd) + ' un.</div>' +
-            '<div class="stat-label mt-md">Valor em Estoque</div>' +
-            '<div class="font-mono text-lg">' + formatMoney(valor) + '</div>' +
+            '<div class="stat-label mt-md">Valor de Venda em Estoque</div>' +
+            '<div class="font-mono text-lg text-success">' + formatMoney(valorVenda) + '</div>' +
+            '<div class="stat-label mt-md">Valor de Compra em Estoque</div>' +
+            '<div class="font-mono text-lg">' + formatMoney(valorCompra) + '</div>' +
             '</div>' +
             '</div>' +
             '</div>' +
@@ -290,8 +293,8 @@ var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorE
 
         var precoCustoRaw = document.getElementById('precoCusto').value;
         var body = {
-            nome:       document.getElementById('nome').value.trim(),
-            descricao:  document.getElementById('descricao').value.trim(),
+            nome: document.getElementById('nome').value.trim(),
+            descricao: document.getElementById('descricao').value.trim(),
             precoCusto: precoCustoRaw ? parseFloat(precoCustoRaw) : null,
             precoVenda: parseFloat(document.getElementById('precoVenda').value),
         };
