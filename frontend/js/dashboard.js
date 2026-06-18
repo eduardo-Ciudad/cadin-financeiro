@@ -217,29 +217,44 @@
     }
 
     function renderBotoesMeses(dados) {
-        var container = document.getElementById('mesesBotoes');
-        if (!container) return;
+    var container = document.getElementById('mesesBotoes');
+    if (!container) return;
 
-        if (!dados.length) {
-            container.innerHTML = '<small class="text-muted">Nenhum dado mensal disponível.</small>';
-            return;
-        }
-
-        container.innerHTML = dados.map(function (d) {
-            var saldo = parseFloat(d.entradas) - parseFloat(d.saidas);
-            var cls = saldo >= 0 ? 'btn-success-outline' : 'btn-danger-outline';
-            return '<button class="btn btn-sm ' + cls + '" data-mes="' + d.mes + '">' +
-                formatMesLabel(d.mes) +
-                ' <small style="opacity:0.8">(' + formatMoney(saldo) + ')</small>' +
-            '</button>';
-        }).join('');
-
-        container.querySelectorAll('[data-mes]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                loadDetalheMes(this.getAttribute('data-mes'));
-            });
-        });
+    if (!dados.length) {
+        container.innerHTML = '<small class="text-muted">Nenhum dado mensal disponível.</small>';
+        return;
     }
+
+    var totalEntradas = 0;
+    var totalSaidas = 0;
+    dados.forEach(function (d) {
+        totalEntradas += parseFloat(d.entradas) || 0;
+        totalSaidas   += parseFloat(d.saidas)   || 0;
+    });
+    var totalReceber = totalSaidas - totalEntradas;
+    var totalClass = totalReceber > 0 ? 'text-danger' : 'text-success';
+
+    var resumoGeral =
+        '<div class="resumo-geral">' +
+            '<span>Total a Receber: </span>' +
+            '<strong class="' + totalClass + '">' + formatMoney(totalReceber) + '</strong>' +
+        '</div>';
+
+    container.innerHTML = resumoGeral + dados.map(function (d) {
+        var saldo = parseFloat(d.entradas) - parseFloat(d.saidas);
+        var cls = saldo >= 0 ? 'btn-success-outline' : 'btn-danger-outline';
+        return '<button class="btn btn-sm ' + cls + '" data-mes="' + d.mes + '">' +
+            formatMesLabel(d.mes) +
+            ' <small style="opacity:0.8">(' + formatMoney(saldo) + ')</small>' +
+        '</button>';
+    }).join('');
+
+    container.querySelectorAll('[data-mes]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            loadDetalheMes(this.getAttribute('data-mes'));
+        });
+    });
+}
 
     /* ===========================
        DETALHE DO MÊS

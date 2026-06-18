@@ -713,6 +713,24 @@ tr:not(.mes-separador) + tr.mes-separador td {
     border-top: 8px solid transparent;
 }
 
+.resumo-geral {
+    width: 100%;
+    padding: var(--space-md) var(--space-lg);
+    margin-bottom: var(--space-md);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    font-size: 1.1rem;
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+}
+
+.resumo-geral strong {
+    font-size: 1.25rem;
+    font-family: var(--font-mono, monospace);
+}
+
 /* ===== ACTION BAR ===== */
 .action-bar {
     display: flex;
