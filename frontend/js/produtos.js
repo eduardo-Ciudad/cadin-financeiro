@@ -39,6 +39,7 @@
             '<table class="table">' +
             '<thead><tr>' +
             '<th>Nome</th>' +
+            '<th class="text-right">Custo</th>' +
             '<th class="text-right">Preço de Venda</th>' +
             '<th class="text-right">Estoque</th>' +
             '<th class="text-right">Valor em Estoque</th>' +
@@ -80,7 +81,7 @@
                 function (p) { state.listPage = p; loadProdutos(); }
             );
         } catch (err) {
-            if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Erro ao carregar produtos.</td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Erro ao carregar produtos.</td></tr>';
             handleApiError(err);
         }
     }
@@ -89,18 +90,18 @@
         var tbody = document.getElementById('produtosTableBody');
         if (!tbody) return;
         if (!produtos.length) {
-            tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Nenhum produto encontrado.</td></tr>';
+            tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Nenhum produto encontrado.</td></tr>';
             return;
         }
         tbody.innerHTML = produtos.map(function (p) {
-            
             var estoque = parseFloat(p.quantidadeAtual) || 0;
-var valorEstoque = parseFloat(p.valorEmEstoque) || 0;
+            var valorEstoque = parseFloat(p.valorEmEstoque) || 0;
             var estoqueColor = estoque <= 0 ? 'text-danger' : estoque < 5 ? 'text-warning' : '';
             return '<tr class="clickable" data-id="' + p.id + '">' +
                 '<td><strong>' + escapeHtml(p.nome) + '</strong>' +
                 (p.descricao ? '<br><small class="text-muted">' + escapeHtml(p.descricao) + '</small>' : '') +
                 '</td>' +
+                '<td class="text-right font-mono">' + (p.precoCusto ? formatMoney(p.precoCusto) : '—') + '</td>' +
                 '<td class="text-right font-mono">' + formatMoney(p.precoVenda || 0) + '</td>' +
                 '<td class="text-right font-mono ' + estoqueColor + '">' + estoque + '</td>' +
                 '<td class="text-right font-mono">' + formatMoney(valorEstoque) + '</td>' +
@@ -162,7 +163,10 @@ var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorE
             '<div class="info-grid">' +
             infoItem('Nome', produto.nome) +
             infoItem('Descrição', produto.descricao) +
+            infoItem('Preço de Custo', produto.precoCusto ? formatMoney(produto.precoCusto) : '—') +
             infoItem('Preço de Venda', formatMoney(produto.precoVenda || 0)) +
+            infoItem('Lucro por Unidade', produto.lucroPorUnidade ? formatMoney(produto.lucroPorUnidade) : '—') +
+            infoItem('Margem de Lucro', produto.margemLucro ? parseFloat(produto.margemLucro).toFixed(1) + '%' : '—') +
             infoItem('Status', produto.ativo !== false ? 'Ativo' : 'Inativo') +
             '</div>' +
             '</div>' +
@@ -225,7 +229,8 @@ var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorE
         return '<form id="formProduto" novalidate>' +
             formGroup('nome', 'Nome *', 'text', produto.nome, 'Nome do produto') +
             formGroup('descricao', 'Descrição', 'text', produto.descricao, 'Descrição opcional') +
-            formGroup('precoVenda', 'Preço de Venda *', 'number', produto.precoVenda, '0.00') +
+            formGroup('precoCusto', 'Preço de Custo', 'number', produto.precoCusto, '0.00') +
+            formGroup('precoVenda', 'Preço de Venda (calculado +30%)', 'number', produto.precoVenda, '0.00') +
             '</form>';
     }
 
@@ -246,6 +251,7 @@ var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorE
             '<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>' +
             '<button class="btn btn-primary" id="btnSalvarProduto">Salvar</button>';
         var overlay = openModal('Novo Produto', formProdutoHtml(), footer);
+        bindMarkupCalc(overlay);
         overlay.querySelector('#btnSalvarProduto').addEventListener('click', function () {
             salvarProduto(null);
         });
@@ -256,8 +262,24 @@ var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorE
             '<button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>' +
             '<button class="btn btn-primary" id="btnSalvarProduto">Salvar</button>';
         var overlay = openModal('Editar Produto', formProdutoHtml(produto), footer);
+        bindMarkupCalc(overlay);
         overlay.querySelector('#btnSalvarProduto').addEventListener('click', function () {
             salvarProduto(produto.id);
+        });
+    }
+
+    function bindMarkupCalc(overlay) {
+        var inputCusto = overlay.querySelector('#precoCusto');
+        var inputVenda = overlay.querySelector('#precoVenda');
+        if (!inputCusto || !inputVenda) return;
+        inputCusto.addEventListener('input', function () {
+            var custo = parseFloat(this.value);
+            if (custo > 0 && !inputVenda.dataset.editadoManualmente) {
+                inputVenda.value = (custo * 1.30).toFixed(2);
+            }
+        });
+        inputVenda.addEventListener('input', function () {
+            this.dataset.editadoManualmente = 'true';
         });
     }
 
@@ -266,9 +288,11 @@ var valor = parseFloat(estoqueData ? estoqueData.valorEmEstoque : produto.valorE
         var btn = document.querySelector('#activeModal #btnSalvarProduto');
         setButtonLoading(btn, true);
 
+        var precoCustoRaw = document.getElementById('precoCusto').value;
         var body = {
-            nome: document.getElementById('nome').value.trim(),
-            descricao: document.getElementById('descricao').value.trim(),
+            nome:       document.getElementById('nome').value.trim(),
+            descricao:  document.getElementById('descricao').value.trim(),
+            precoCusto: precoCustoRaw ? parseFloat(precoCustoRaw) : null,
             precoVenda: parseFloat(document.getElementById('precoVenda').value),
         };
 
