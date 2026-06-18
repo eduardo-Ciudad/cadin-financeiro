@@ -279,57 +279,86 @@
     }
 
     function renderExtrato(items) {
-        var tbody = document.getElementById('extratoTableBody');
-        if (!tbody) return;
-        if (!items.length) {
-            tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Nenhum lançamento encontrado.</td></tr>';
-            return;
-        }
-        tbody.innerHTML = items.map(function (item) {
-            var valorColor = item.categoria === 'PAGAMENTO' ? 'text-success' : 'text-danger';
-            var valorPrefix = item.categoria === 'PAGAMENTO' ? '+' : '-';
-            var valorAbs = Math.abs(item.valor || 0);
-            var saldoColor = (item.saldoAcumulado || 0) >= 0 ? 'text-success' : 'text-danger';
-            var isEstornado = item.estornado || item.categoria === 'ESTORNO';
+    var tbody = document.getElementById('extratoTableBody');
+    if (!tbody) return;
+    if (!items.length) {
+        tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Nenhum lançamento encontrado.</td></tr>';
+        return;
+    }
 
-            return '<tr' + (isEstornado ? ' style="opacity:0.5"' : '') + '>' +
-                '<td class="text-mono text-sm">' + formatDate(item.data || item.dataCompetencia) + '</td>' +
-                '<td>' + categoriaBadge(item.categoria) + '</td>' +
-                '<td class="text-secondary desc-cell" data-lanc-id="' + item.id + '" data-cat="' + item.categoria + '">' + escapeHtml(item.descricao || '—') + '</td>'  +
-                '<td class="text-right font-mono ' + valorColor + '">' +
-                valorPrefix + formatMoney(valorAbs) +
-                '</td>' +
-                '<td class="text-right font-mono ' + saldoColor + '">' + formatMoney(item.saldoAcumulado || 0) + '</td>' +
-                '<td class="text-right">' +
-                (!isEstornado && item.id
-                    ? '<button class="btn btn-ghost btn-sm" data-id="' + item.id + '" title="Estornar">↩ Estornar</button>'
-                    : '') +
-                '</td>' +
+    // Ordena do mais recente pro mais antigo
+    items.sort(function (a, b) {
+        var da = new Date(a.data || a.dataCompetencia);
+        var db = new Date(b.data || b.dataCompetencia);
+        return db - da;
+    });
+
+    // Agrupa por mês
+    var meses = [
+        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+    ];
+    var mesAtual = '';
+
+    tbody.innerHTML = items.map(function (item) {
+        var dataStr = item.data || item.dataCompetencia;
+        var d = new Date(dataStr);
+        var chave = meses[d.getMonth()] + ' ' + d.getFullYear();
+
+        var separador = '';
+        if (chave !== mesAtual) {
+            mesAtual = chave;
+            separador = '<tr class="mes-separador">' +
+                '<td colspan="6">' + chave + '</td>' +
                 '</tr>';
-        }).join('');
-
-        tbody.querySelectorAll('[data-id]').forEach(function (btn) {
-            btn.addEventListener('click', function () {
-                var lancamentoId = this.getAttribute('data-id');
-                confirmDialog(
-                    'Tem certeza que deseja estornar este lançamento? Esta ação não pode ser desfeita.',
-                    function () { estornar(lancamentoId); },
-                    'Estornar lançamento'
-                );
-            });
-        });
-
-        // Busca itens das compras para exibir quantidades
-tbody.querySelectorAll('[data-cat="COMPRA"]').forEach(function(cell) {
-    var lancId = cell.getAttribute('data-lanc-id');
-    api.get('/lancamentos/' + lancId).then(function(lanc) {
-        if (lanc.itens && lanc.itens.length) {
-            cell.innerHTML = lanc.itens.map(function(i) {
-                return parseFloat(i.quantidade) + 'x ' + escapeHtml(i.nomeProduto);
-            }).join(', ');
         }
-    }).catch(function() {});
-});
+
+        var valorColor = item.categoria === 'PAGAMENTO' ? 'text-success' : 'text-danger';
+        var valorPrefix = item.categoria === 'PAGAMENTO' ? '+' : '-';
+        var valorAbs = Math.abs(item.valor || 0);
+        var saldoColor = (item.saldoAcumulado || 0) >= 0 ? 'text-success' : 'text-danger';
+        var isEstornado = item.estornado || item.categoria === 'ESTORNO';
+
+        return separador +
+            '<tr' + (isEstornado ? ' style="opacity:0.5"' : '') + '>' +
+            '<td class="text-mono text-sm">' + formatDate(dataStr) + '</td>' +
+            '<td>' + categoriaBadge(item.categoria) + '</td>' +
+            '<td class="text-secondary desc-cell" data-lanc-id="' + item.id + '" data-cat="' + item.categoria + '">' + escapeHtml(item.descricao || '—') + '</td>' +
+            '<td class="text-right font-mono ' + valorColor + '">' +
+            valorPrefix + formatMoney(valorAbs) +
+            '</td>' +
+            '<td class="text-right font-mono ' + saldoColor + '">' + formatMoney(item.saldoAcumulado || 0) + '</td>' +
+            '<td class="text-right">' +
+            (!isEstornado && item.id
+                ? '<button class="btn btn-ghost btn-sm" data-id="' + item.id + '" title="Estornar">↩ Estornar</button>'
+                : '') +
+            '</td>' +
+            '</tr>';
+    }).join('');
+
+    // Event listeners (igual antes)
+    tbody.querySelectorAll('[data-id]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+            var lancamentoId = this.getAttribute('data-id');
+            confirmDialog(
+                'Tem certeza que deseja estornar este lançamento? Esta ação não pode ser desfeita.',
+                function () { estornar(lancamentoId); },
+                'Estornar lançamento'
+            );
+        });
+    });
+
+    tbody.querySelectorAll('[data-cat="COMPRA"]').forEach(function (cell) {
+        var lancId = cell.getAttribute('data-lanc-id');
+        api.get('/lancamentos/' + lancId).then(function (lanc) {
+            if (lanc.itens && lanc.itens.length) {
+                cell.innerHTML = lanc.itens.map(function (i) {
+                    return parseFloat(i.quantidade) + 'x ' + escapeHtml(i.nomeProduto);
+                }).join(', ');
+            }
+        }).catch(function () { });
+    });
+
 
     }
 

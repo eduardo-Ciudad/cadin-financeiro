@@ -697,6 +697,22 @@
     color: var(--accent);
 }
 
+.mes-separador td {
+    padding: var(--space-lg) var(--space-md) var(--space-sm);
+    font-weight: 700;
+    font-size: 1.15rem;
+    color: var(--accent);
+    background: rgba(0, 0, 0, 0.3);
+    border-left: 4px solid var(--accent);
+    border-bottom: 2px solid var(--accent);
+    letter-spacing: 0.05em;
+}
+
+tr:not(.mes-separador) + tr.mes-separador td {
+    margin-top: var(--space-xl);
+    border-top: 8px solid transparent;
+}
+
 /* ===== ACTION BAR ===== */
 .action-bar {
     display: flex;
