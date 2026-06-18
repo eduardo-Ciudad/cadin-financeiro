@@ -468,7 +468,7 @@
         var list = overlay.querySelector('#itemList');
         var idx = list.children.length;
         var prodOptions = state.produtos.map(function (p) {
-            return '<option value="' + p.id + '" data-preco="' + (p.precoVenda || 0) + '">' +
+            return '<option value="' + p.id + '" data-preco="' + (p.precoCusto || p.precoVenda) + '">' +
                 escapeHtml(p.nome) + '</option>';
         }).join('');
 
