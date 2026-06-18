@@ -279,85 +279,85 @@
     }
 
     function renderExtrato(items) {
-    var tbody = document.getElementById('extratoTableBody');
-    if (!tbody) return;
-    if (!items.length) {
-        tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Nenhum lançamento encontrado.</td></tr>';
-        return;
-    }
-
-    // Ordena do mais recente pro mais antigo
-    items.sort(function (a, b) {
-        var da = new Date(a.data || a.dataCompetencia);
-        var db = new Date(b.data || b.dataCompetencia);
-        return db - da;
-    });
-
-    // Agrupa por mês
-    var meses = [
-        'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
-        'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
-    ];
-    var mesAtual = '';
-
-    tbody.innerHTML = items.map(function (item) {
-        var dataStr = item.data || item.dataCompetencia;
-        var d = new Date(dataStr);
-        var chave = meses[d.getMonth()] + ' ' + d.getFullYear();
-
-        var separador = '';
-        if (chave !== mesAtual) {
-            mesAtual = chave;
-            separador = '<tr class="mes-separador">' +
-                '<td colspan="6">' + chave + '</td>' +
-                '</tr>';
+        var tbody = document.getElementById('extratoTableBody');
+        if (!tbody) return;
+        if (!items.length) {
+            tbody.innerHTML = '<tr><td colspan="6" class="table-empty">Nenhum lançamento encontrado.</td></tr>';
+            return;
         }
 
-        var valorColor = item.categoria === 'PAGAMENTO' ? 'text-success' : 'text-danger';
-        var valorPrefix = item.categoria === 'PAGAMENTO' ? '+' : '-';
-        var valorAbs = Math.abs(item.valor || 0);
-        var saldoColor = (item.saldoAcumulado || 0) >= 0 ? 'text-success' : 'text-danger';
-        var isEstornado = item.estornado || item.categoria === 'ESTORNO';
-
-        return separador +
-            '<tr' + (isEstornado ? ' style="opacity:0.5"' : '') + '>' +
-            '<td class="text-mono text-sm">' + formatDate(dataStr) + '</td>' +
-            '<td>' + categoriaBadge(item.categoria) + '</td>' +
-            '<td class="text-secondary desc-cell" data-lanc-id="' + item.id + '" data-cat="' + item.categoria + '">' + escapeHtml(item.descricao || '—') + '</td>' +
-            '<td class="text-right font-mono ' + valorColor + '">' +
-            valorPrefix + formatMoney(valorAbs) +
-            '</td>' +
-            '<td class="text-right font-mono ' + saldoColor + '">' + formatMoney(item.saldoAcumulado || 0) + '</td>' +
-            '<td class="text-right">' +
-            (!isEstornado && item.id
-                ? '<button class="btn btn-ghost btn-sm" data-id="' + item.id + '" title="Estornar">↩ Estornar</button>'
-                : '') +
-            '</td>' +
-            '</tr>';
-    }).join('');
-
-    // Event listeners (igual antes)
-    tbody.querySelectorAll('[data-id]').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-            var lancamentoId = this.getAttribute('data-id');
-            confirmDialog(
-                'Tem certeza que deseja estornar este lançamento? Esta ação não pode ser desfeita.',
-                function () { estornar(lancamentoId); },
-                'Estornar lançamento'
-            );
+        // Ordena do mais recente pro mais antigo
+        items.sort(function (a, b) {
+            var da = new Date(a.data || a.dataCompetencia);
+            var db = new Date(b.data || b.dataCompetencia);
+            return db - da;
         });
-    });
 
-    tbody.querySelectorAll('[data-cat="COMPRA"]').forEach(function (cell) {
-        var lancId = cell.getAttribute('data-lanc-id');
-        api.get('/lancamentos/' + lancId).then(function (lanc) {
-            if (lanc.itens && lanc.itens.length) {
-                cell.innerHTML = lanc.itens.map(function (i) {
-                    return parseFloat(i.quantidade) + 'x ' + escapeHtml(i.nomeProduto);
-                }).join(', ');
+        // Agrupa por mês
+        var meses = [
+            'Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho',
+            'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'
+        ];
+        var mesAtual = '';
+
+        tbody.innerHTML = items.map(function (item) {
+            var dataStr = item.data || item.dataCompetencia;
+            var d = new Date(dataStr);
+            var chave = meses[d.getMonth()] + ' ' + d.getFullYear();
+
+            var separador = '';
+            if (chave !== mesAtual) {
+                mesAtual = chave;
+                separador = '<tr class="mes-separador">' +
+                    '<td colspan="6">' + chave + '</td>' +
+                    '</tr>';
             }
-        }).catch(function () { });
-    });
+
+            var valorColor = item.categoria === 'PAGAMENTO' ? 'text-success' : 'text-danger';
+            var valorPrefix = item.categoria === 'PAGAMENTO' ? '+' : '-';
+            var valorAbs = Math.abs(item.valor || 0);
+            var saldoColor = (item.saldoAcumulado || 0) >= 0 ? 'text-success' : 'text-danger';
+            var isEstornado = item.estornado || item.categoria === 'ESTORNO';
+
+            return separador +
+                '<tr' + (isEstornado ? ' style="opacity:0.5"' : '') + '>' +
+                '<td class="text-mono text-sm">' + formatDate(dataStr) + '</td>' +
+                '<td>' + categoriaBadge(item.categoria) + '</td>' +
+                '<td class="text-secondary desc-cell" data-lanc-id="' + item.id + '" data-cat="' + item.categoria + '">' + escapeHtml(item.descricao || '—') + '</td>' +
+                '<td class="text-right font-mono ' + valorColor + '">' +
+                valorPrefix + formatMoney(valorAbs) +
+                '</td>' +
+                '<td class="text-right font-mono ' + saldoColor + '">' + formatMoney(item.saldoAcumulado || 0) + '</td>' +
+                '<td class="text-right">' +
+                (!isEstornado && item.id
+                    ? '<button class="btn btn-ghost btn-sm" data-id="' + item.id + '" title="Estornar">↩ Estornar</button>'
+                    : '') +
+                '</td>' +
+                '</tr>';
+        }).join('');
+
+        // Event listeners (igual antes)
+        tbody.querySelectorAll('[data-id]').forEach(function (btn) {
+            btn.addEventListener('click', function () {
+                var lancamentoId = this.getAttribute('data-id');
+                confirmDialog(
+                    'Tem certeza que deseja estornar este lançamento? Esta ação não pode ser desfeita.',
+                    function () { estornar(lancamentoId); },
+                    'Estornar lançamento'
+                );
+            });
+        });
+
+        tbody.querySelectorAll('[data-cat="COMPRA"]').forEach(function (cell) {
+            var lancId = cell.getAttribute('data-lanc-id');
+            api.get('/lancamentos/' + lancId).then(function (lanc) {
+                if (lanc.itens && lanc.itens.length) {
+                    cell.innerHTML = lanc.itens.map(function (i) {
+                        return parseFloat(i.quantidade) + 'x ' + escapeHtml(i.nomeProduto);
+                    }).join(', ');
+                }
+            }).catch(function () { });
+        });
 
 
     }
@@ -548,11 +548,21 @@
             '<div class="form-group" style="margin:0">' +
             '<input class="form-input item-qtd" type="number" min="1" value="1" style="width:80px" placeholder="Qtd">' +
             '</div>' +
+            '<div class="form-group" style="margin:0">' +
+            '<input class="form-input item-preco" type="number" step="0.01" min="0" style="width:120px" placeholder="Preço unit.">' +
+            '</div>' +
             '<div class="item-total" id="itemTotal' + idx + '">R$ 0,00</div>' +
             '<button type="button" class="btn btn-ghost btn-icon item-remove" title="Remover">✕</button>';
 
-        row.querySelector('.item-produto').addEventListener('change', function () { updateItemTotal(row); updateCompraTotal(overlay); });
+        row.querySelector('.item-produto').addEventListener('change', function () {
+            var opt = this.options[this.selectedIndex];
+            var preco = opt ? opt.getAttribute('data-preco') : '';
+            row.querySelector('.item-preco').value = preco || '';
+            updateItemTotal(row);
+            updateCompraTotal(overlay);
+        });
         row.querySelector('.item-qtd').addEventListener('input', function () { updateItemTotal(row); updateCompraTotal(overlay); });
+        row.querySelector('.item-preco').addEventListener('input', function () { updateItemTotal(row); updateCompraTotal(overlay); });
         row.querySelector('.item-remove').addEventListener('click', function () {
             row.remove();
             updateCompraTotal(overlay);
@@ -562,9 +572,7 @@
     }
 
     function updateItemTotal(row) {
-        var select = row.querySelector('.item-produto');
-        var opt = select.options[select.selectedIndex];
-        var preco = opt ? parseFloat(opt.getAttribute('data-preco') || 0) : 0;
+        var preco = parseFloat(row.querySelector('.item-preco').value) || 0;
         var qtd = parseFloat(row.querySelector('.item-qtd').value) || 0;
         row.querySelector('.item-total').textContent = formatMoney(preco * qtd);
     }
@@ -572,9 +580,7 @@
     function updateCompraTotal(overlay) {
         var total = 0;
         overlay.querySelectorAll('.item-row').forEach(function (row) {
-            var select = row.querySelector('.item-produto');
-            var opt = select.options[select.selectedIndex];
-            var preco = opt ? parseFloat(opt.getAttribute('data-preco') || 0) : 0;
+            var preco = parseFloat(row.querySelector('.item-preco').value) || 0;
             var qtd = parseFloat(row.querySelector('.item-qtd').value) || 0;
             total += preco * qtd;
         });
@@ -593,7 +599,9 @@
             var produtoId = row.querySelector('.item-produto').value;
             var qtd = parseFloat(row.querySelector('.item-qtd').value);
             if (!produtoId || !qtd || qtd < 1) { valid = false; return; }
-            itens.push({ produtoId: produtoId, quantidade: qtd });
+            var preco = parseFloat(row.querySelector('.item-preco').value);
+            if (!preco || preco <= 0) { valid = false; return; }
+            itens.push({ produtoId: produtoId, quantidade: qtd, precoUnitario: preco });
         });
 
         if (!itens.length || !valid) {
