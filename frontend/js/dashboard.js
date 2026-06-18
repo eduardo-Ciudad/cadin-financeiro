@@ -57,9 +57,11 @@
             '<section class="card" id="resumoMensalSection" style="margin-top:var(--space-xl)">' +
                 '<div class="card-header"><h4>Movimentação Mensal</h4></div>' +
                 '<div class="card-body">' +
-                    '<div style="position:relative;height:320px;margin-bottom:var(--space-lg)">' +
-                        '<canvas id="graficoMensal"></canvas>' +
-                    '</div>' +
+                  '<div class="card-body">' +
+    '<div id="vendaMensalHeader" class="venda-mensal-header"></div>' +
+    '<div style="position:relative;height:320px;margin-bottom:var(--space-lg)">' +
+        '<canvas id="graficoMensal"></canvas>' +
+    '</div>' +
                     '<div id="mesesBotoes" style="display:flex;flex-wrap:wrap;gap:var(--space-sm)">' +
                         '<div class="loading-center" style="padding:var(--space-md)">' +
                             '<span class="spinner spinner-sm"></span>' +
@@ -134,16 +136,73 @@
        RESUMO MENSAL
     =========================== */
     async function loadResumoMensal() {
-        try {
-            var data = await api.get('/lancamentos/resumo-mensal');
-            renderGrafico(data);
-            renderBotoesMeses(data);
-        } catch (err) {
-            var botoes = document.getElementById('mesesBotoes');
-            if (botoes) botoes.innerHTML = '<small class="text-muted">Não foi possível carregar o resumo mensal.</small>';
-            console.error('Erro ao carregar resumo mensal', err);
+    try {
+        var data = await api.get('/lancamentos/resumo-mensal');
+        renderVendaMensalHeader(data);
+        renderGrafico(data);
+        renderBotoesMeses(data);
+    } catch (err) {
+        var botoes = document.getElementById('mesesBotoes');
+        if (botoes) botoes.innerHTML = '<small class="text-muted">Não foi possível carregar o resumo mensal.</small>';
+        console.error('Erro ao carregar resumo mensal', err);
+    }
+}
+    function renderVendaMensalHeader(dados) {
+    var container = document.getElementById('vendaMensalHeader');
+    if (!container || !dados.length) return;
+
+    // Descobre o índice do mês atual
+    var hoje = new Date();
+    var mesAtualStr = hoje.getFullYear() + '-' + String(hoje.getMonth() + 1).padStart(2, '0');
+    var indexAtual = -1;
+
+    for (var i = 0; i < dados.length; i++) {
+        if (dados[i].mes === mesAtualStr) {
+            indexAtual = i;
+            break;
         }
     }
+    // Se não achou o mês atual, mostra o mais recente
+    if (indexAtual === -1) indexAtual = dados.length - 1;
+
+    window._vendaHeaderDados = dados;
+    window._vendaHeaderIndex = indexAtual;
+
+    atualizarVendaHeader();
+}
+
+function atualizarVendaHeader() {
+    var container = document.getElementById('vendaMensalHeader');
+    var dados = window._vendaHeaderDados;
+    var idx = window._vendaHeaderIndex;
+    if (!container || !dados || !dados[idx]) return;
+
+    var d = dados[idx];
+    var totalVendido = parseFloat(d.entradas) || 0;
+
+    container.innerHTML =
+        '<button class="venda-nav-btn" id="vendaPrev" ' + (idx === 0 ? 'disabled' : '') + '>‹</button>' +
+        '<div class="venda-info">' +
+            '<span class="venda-mes">' + formatMesLabelFull(d.mes) + '</span>' +
+            '<span class="venda-valor">' + formatMoney(totalVendido) + '</span>' +
+            '<span class="venda-label">vendido no mês</span>' +
+        '</div>' +
+        '<button class="venda-nav-btn" id="vendaNext" ' + (idx === dados.length - 1 ? 'disabled' : '') + '>›</button>';
+
+    document.getElementById('vendaPrev').addEventListener('click', function () {
+        if (window._vendaHeaderIndex > 0) {
+            window._vendaHeaderIndex--;
+            atualizarVendaHeader();
+        }
+    });
+
+    document.getElementById('vendaNext').addEventListener('click', function () {
+        if (window._vendaHeaderIndex < window._vendaHeaderDados.length - 1) {
+            window._vendaHeaderIndex++;
+            atualizarVendaHeader();
+        }
+    });
+}
 
     function renderGrafico(dados) {
         var canvas = document.getElementById('graficoMensal');

@@ -713,23 +713,7 @@ tr:not(.mes-separador) + tr.mes-separador td {
     border-top: 8px solid transparent;
 }
 
-.resumo-geral {
-    width: 100%;
-    padding: var(--space-md) var(--space-lg);
-    margin-bottom: var(--space-md);
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-md);
-    font-size: 1.1rem;
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-}
 
-.resumo-geral strong {
-    font-size: 1.25rem;
-    font-family: var(--font-mono, monospace);
-}
 
 /* ===== ACTION BAR ===== */
 .action-bar {
@@ -781,4 +765,72 @@ tr:not(.mes-separador) + tr.mes-separador td {
     font-size: var(--text-sm);
     color: var(--text-primary);
     font-weight: 500;
+}
+
+
+.venda-mensal-header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-lg);
+    padding: var(--space-lg) var(--space-md);
+    margin-bottom: var(--space-lg);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.venda-info {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-xs);
+    min-width: 200px;
+}
+
+.venda-mes {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+}
+
+.venda-valor {
+    font-size: 1.8rem;
+    font-weight: 700;
+    font-family: var(--font-mono, monospace);
+    color: var(--accent);
+}
+
+.venda-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+.venda-nav-btn {
+    background: transparent;
+    border: 1px solid var(--border);
+    color: var(--text-primary);
+    font-size: 1.5rem;
+    width: 40px;
+    height: 40px;
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.venda-nav-btn:hover:not(:disabled) {
+    background: var(--accent);
+    color: var(--bg-primary);
+    border-color: var(--accent);
+}
+
+.venda-nav-btn:disabled {
+    opacity: 0.3;
+    cursor: not-allowed;
 }
