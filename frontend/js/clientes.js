@@ -49,6 +49,7 @@
             '<th>Documento</th>' +
             '<th>Telefone</th>' +
             '<th>Status</th>' +
+            '<th class="text-right">Saldo</th>' +
             '</tr></thead>' +
             '<tbody id="clientesTableBody">' +
             skeletonRows(4) +
@@ -88,35 +89,59 @@
                 function (p) { state.listPage = p; loadClientes(); }
             );
         } catch (err) {
-            if (tbody) tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Erro ao carregar clientes.</td></tr>';
+            if (tbody) tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Erro ao carregar clientes.</td></tr>';
             handleApiError(err);
         }
     }
 
     function renderClientesTable(clientes) {
-        var tbody = document.getElementById('clientesTableBody');
-        if (!tbody) return;
-        if (!clientes.length) {
-            tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Nenhum cliente encontrado.</td></tr>';
-            return;
-        }
-        tbody.innerHTML = clientes.map(function (c) {
-            return '<tr class="clickable" data-id="' + c.id + '">' +
-                '<td><strong>' + escapeHtml(c.nome) + '</strong></td>' +
-                '<td>' + escapeHtml(c.documento || '—') + '</td>' +
-                '<td>' + escapeHtml(c.telefone || '—') + '</td>' +
-                '<td>' + statusBadge(c.ativo !== false) + '</td>' +
-                '</tr>';
-        }).join('');
-
-        tbody.querySelectorAll('tr.clickable').forEach(function (row) {
-            row.addEventListener('click', function () {
-                var id = this.getAttribute('data-id');
-                var nome = this.querySelector('td strong').textContent;
-                openDetalhe(id, nome);
-            });
-        });
+    var tbody = document.getElementById('clientesTableBody');
+    if (!tbody) return;
+    if (!clientes.length) {
+        tbody.innerHTML = '<tr><td colspan="5" class="table-empty">Nenhum cliente encontrado.</td></tr>';
+        return;
     }
+    tbody.innerHTML = clientes.map(function (c) {
+        return '<tr class="clickable" data-id="' + c.id + '">' +
+            '<td><strong>' + escapeHtml(c.nome) + '</strong></td>' +
+            '<td>' + escapeHtml(c.documento || '—') + '</td>' +
+            '<td>' + escapeHtml(c.telefone || '—') + '</td>' +
+            '<td>' + statusBadge(c.ativo !== false) + '</td>' +
+            '<td class="text-right font-mono saldo-cell" data-cliente-id="' + c.id + '">' +
+                '<span class="text-muted">…</span>' +
+            '</td>' +
+            '</tr>';
+    }).join('');
+
+    tbody.querySelectorAll('tr.clickable').forEach(function (row) {
+        row.addEventListener('click', function () {
+            var id = this.getAttribute('data-id');
+            var nome = this.querySelector('td strong').textContent;
+            openDetalhe(id, nome);
+        });
+    });
+
+    // Carrega saldo de cada cliente
+    clientes.forEach(function (c) {
+        api.get('/clientes/' + c.id + '/saldo').then(function (saldo) {
+            var cell = tbody.querySelector('.saldo-cell[data-cliente-id="' + c.id + '"]');
+            if (!cell) return;
+            var valor = saldo ? saldo.saldo : 0;
+            var situacao = saldo ? saldo.situacao : 'QUITADO';
+
+            if (situacao === 'DEVEDOR') {
+                cell.innerHTML = '<span class="text-danger">' + formatMoney(valor) + '</span>';
+            } else if (situacao === 'CREDOR') {
+                cell.innerHTML = '<span class="text-info">' + formatMoney(valor) + '</span>';
+            } else {
+                cell.innerHTML = '<span class="text-success">Quitado</span>';
+            }
+        }).catch(function () {
+            var cell = tbody.querySelector('.saldo-cell[data-cliente-id="' + c.id + '"]');
+            if (cell) cell.innerHTML = '<span class="text-muted">—</span>';
+        });
+    });
+}
 
     /* ===========================
        DETAIL SECTION
