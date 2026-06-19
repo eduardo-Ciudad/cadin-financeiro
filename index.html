@@ -7,16 +7,16 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="css/variables.css">
-    <link rel="stylesheet" href="css/global.css">
-    <link rel="stylesheet" href="css/components.css">
-    <link rel="stylesheet" href="css/pages.css">
+    <link rel="stylesheet" href="frontend/css/variables.css">
+    <link rel="stylesheet" href="frontend/css/global.css">
+    <link rel="stylesheet" href="frontend/css/components.css">
+    <link rel="stylesheet" href="frontend/css/pages.css">
 </head>
 <body class="auth-body">
     <div class="auth-container">
         <div class="auth-card">
             <div class="auth-logo">
-                <img src="assets/logo.svg" alt="FC" width="52" height="52">
+                <img src="frontend/assets/logo.svg" alt="FC" width="52" height="52">
                 <h1 class="auth-title">Financial Control</h1>
                 <p class="auth-subtitle">Gestão financeira simplificada</p>
             </div>
@@ -50,12 +50,12 @@
 
     <div id="toastContainer" class="toast-container"></div>
 
-    <script src="js/utils.js"></script>
-    <script src="js/api.js"></script>
-    <script src="js/auth.js"></script>
+    <script src="frontend/js/utils.js"></script>
+    <script src="frontend/js/api.js"></script>
+    <script src="frontend/js/auth.js"></script>
     <script>
         // Already logged in — skip to dashboard
-        if (getToken()) window.location.href = 'dashboard.html';
+        if (getToken()) window.location.href = 'frontend/dashboard.html';
 
         document.getElementById('loginForm').addEventListener('submit', async function(e) {
             e.preventDefault();
@@ -74,7 +74,7 @@
             try {
                 const data = await api.post('/auth/login', { email, senha });
                 localStorage.setItem('fc_token', data.token);
-                window.location.href = 'dashboard.html';
+                window.location.href = 'frontend/dashboard.html';
             } catch (err) {
                 if (err.fieldErrors && Array.isArray(err.fieldErrors)) {
                     err.fieldErrors.forEach(function(fe) {
