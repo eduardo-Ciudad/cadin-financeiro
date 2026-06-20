@@ -23,6 +23,29 @@
     margin-bottom: var(--space-sm);
 }
 
+/* ===== PESSOAL PAGE — inline form grid ===== */
+.pessoal-form-grid {
+    display: grid;
+    grid-template-columns: 1fr 150px 170px auto;
+    gap: var(--space-md);
+    align-items: end;
+}
+
+@media (max-width: 860px) {
+    .pessoal-form-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .pessoal-submit-btn {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 480px) {
+    .pessoal-form-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ===== AUTH PAGE (LOGIN) ===== */
 .auth-body {
     display: flex;

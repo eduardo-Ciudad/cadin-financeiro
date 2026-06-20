@@ -39,6 +39,7 @@
         get:    function (path) { return request(path); },
         post:   function (path, body) { return request(path, { method: 'POST',   body: JSON.stringify(body) }); },
         put:    function (path, body) { return request(path, { method: 'PUT',    body: JSON.stringify(body) }); },
+        patch:  function (path, body) { return request(path, { method: 'PATCH',  body: body !== undefined ? JSON.stringify(body) : undefined }); },
         delete: function (path)       { return request(path, { method: 'DELETE' }); },
     };
 
