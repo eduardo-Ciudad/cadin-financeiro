@@ -3,15 +3,41 @@
     requireAuth();
 
     var mainContent = document.getElementById('mainContent');
-    var state = { filtroStatus: '' };
+    var state = {
+        filtroStatus: '',
+        mesAtual: new Date().toISOString().slice(0, 7),
+    };
 
     document.addEventListener('DOMContentLoaded', function () {
         renderPage();
+        loadResumo();
         loadContas();
     });
 
+    /* ===== HELPERS ===== */
+
+    function nomeMes(mesStr) {
+        var meses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho',
+                     'Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+        var parts = mesStr.split('-');
+        return meses[parseInt(parts[1]) - 1] + ' ' + parts[0];
+    }
+
+    function mudarMes(delta) {
+        var parts = state.mesAtual.split('-');
+        var d = new Date(parseInt(parts[0]), parseInt(parts[1]) - 1 + delta, 1);
+        state.mesAtual = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0');
+        var label = document.getElementById('labelMesAtual');
+        if (label) label.textContent = nomeMes(state.mesAtual);
+        loadResumo();
+        loadContas();
+    }
+
+    /* ===== PAGE STRUCTURE ===== */
+
     function renderPage() {
         mainContent.innerHTML =
+            // Card 1 — form (unchanged)
             '<div class="card" style="margin-bottom:var(--space-lg)">' +
                 '<div class="card-header"><h3>Adicionar Conta</h3></div>' +
                 '<div style="padding:var(--space-lg)">' +
@@ -40,10 +66,20 @@
                     '</form>' +
                 '</div>' +
             '</div>' +
+
+            // Card 2 — monthly view
             '<div class="card">' +
                 '<div class="card-header">' +
-                    '<h3>Contas Pessoais</h3>' +
-                    '<div id="filterTabs" style="display:flex;gap:var(--space-xs)">' +
+                    '<h3>Contas do Mês</h3>' +
+                    '<div class="dia-nav">' +
+                        '<button class="btn btn-sm btn-ghost" id="btnMesAnterior">←</button>' +
+                        '<span id="labelMesAtual" style="font-size:var(--text-base);font-weight:600;color:var(--text-primary);min-width:160px;text-align:center">' + nomeMes(state.mesAtual) + '</span>' +
+                        '<button class="btn btn-sm btn-ghost" id="btnProximoMes">→</button>' +
+                    '</div>' +
+                '</div>' +
+                '<div style="padding:var(--space-lg) var(--space-lg) 0">' +
+                    '<div class="resumo-pessoal-grid" id="resumoPessoalGrid"></div>' +
+                    '<div id="filterTabs" style="display:flex;gap:var(--space-xs);margin-bottom:var(--space-lg)">' +
                         '<button class="btn btn-sm btn-primary filter-btn" data-status="">Todas</button>' +
                         '<button class="btn btn-sm btn-secondary filter-btn" data-status="PENDENTE">Pendentes</button>' +
                         '<button class="btn btn-sm btn-secondary filter-btn" data-status="PAGA">Pagas</button>' +
@@ -66,6 +102,8 @@
 
         document.getElementById('formPessoal').addEventListener('submit', handleFormSubmit);
         document.getElementById('btnAbrirParcelamento').addEventListener('click', openParcelamentoModal);
+        document.getElementById('btnMesAnterior').addEventListener('click', function () { mudarMes(-1); });
+        document.getElementById('btnProximoMes').addEventListener('click', function () { mudarMes(1); });
 
         document.getElementById('filterTabs').querySelectorAll('.filter-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
@@ -79,6 +117,53 @@
                 loadContas();
             });
         });
+    }
+
+    /* ===== RESUMO ===== */
+
+    function renderResumoLoading() {
+        var grid = document.getElementById('resumoPessoalGrid');
+        if (!grid) return;
+        var skel =
+            '<div class="stat-card">' +
+                '<div class="skeleton skeleton-text" style="width:55%"></div>' +
+                '<div class="skeleton" style="height:36px;margin-top:var(--space-sm)"></div>' +
+                '<div class="skeleton skeleton-text" style="width:35%;margin-top:var(--space-xs)"></div>' +
+            '</div>';
+        grid.innerHTML = skel + skel + skel;
+    }
+
+    function renderResumo(resumo) {
+        var grid = document.getElementById('resumoPessoalGrid');
+        if (!grid) return;
+
+        var pendenteCor = parseFloat(resumo.totalPendente) > 0 ? 'var(--warning)' : 'var(--text-muted)';
+
+        function card(label, valor, qtd, cor) {
+            var qtdTxt = qtd + ' conta' + (qtd !== 1 ? 's' : '');
+            return '<div class="stat-card">' +
+                '<div class="stat-label">' + label + '</div>' +
+                '<div class="stat-value" style="font-size:var(--text-2xl)' + (cor ? ';color:' + cor : '') + '">' + formatMoney(valor) + '</div>' +
+                '<div style="font-size:var(--text-xs);color:var(--text-muted);margin-top:var(--space-xs)">' + qtdTxt + '</div>' +
+            '</div>';
+        }
+
+        grid.innerHTML =
+            card('Total do Mês', resumo.totalMes, resumo.quantidadeTotal, '') +
+            card('Pago', resumo.totalPago, resumo.quantidadePaga, 'var(--accent)') +
+            card('Pendente', resumo.totalPendente, resumo.quantidadePendente, pendenteCor);
+    }
+
+    async function loadResumo() {
+        renderResumoLoading();
+        try {
+            var resumo = await api.get('/pessoal/resumo?mes=' + state.mesAtual);
+            renderResumo(resumo);
+        } catch (err) {
+            var grid = document.getElementById('resumoPessoalGrid');
+            if (grid) grid.innerHTML = '';
+            handleApiError(err);
+        }
     }
 
     /* ===== PARCELAMENTO MODAL ===== */
@@ -121,7 +206,6 @@
             handleParcelamentoSubmit(overlay);
         });
 
-        // Also handle Enter key via form submit
         overlay.querySelector('#formParcelamento').addEventListener('submit', function (e) {
             e.preventDefault();
             handleParcelamentoSubmit(overlay);
@@ -175,6 +259,7 @@
             var parcelas = await api.post('/pessoal/parcelamentos', body);
             showToast(parcelas.length + ' parcelas criadas com sucesso.', 'success');
             closeModal();
+            loadResumo();
             loadContas();
         } catch (err) {
             handleApiError(err);
@@ -190,7 +275,8 @@
         if (tbody) tbody.innerHTML = skeletonRows(6);
 
         try {
-            var params = state.filtroStatus ? '?status=' + state.filtroStatus : '';
+            var params = '?mes=' + state.mesAtual;
+            if (state.filtroStatus) params += '&status=' + state.filtroStatus;
             var data = await api.get('/pessoal' + params);
             var contas = Array.isArray(data) ? data : (data.content || []);
             renderTabela(contas);
@@ -274,6 +360,7 @@
             document.getElementById('pessoalDescricao').value = '';
             document.getElementById('pessoalValor').value = '';
             document.getElementById('pessoalVencimento').value = '';
+            loadResumo();
             loadContas();
         } catch (err) {
             handleApiError(err);
@@ -286,6 +373,7 @@
         try {
             await api.patch('/pessoal/' + id + '/pagar');
             showToast('Conta marcada como paga.', 'success');
+            loadResumo();
             loadContas();
         } catch (err) {
             handleApiError(err);
@@ -296,6 +384,7 @@
         try {
             await api.delete('/pessoal/' + id);
             showToast('Conta excluída.', 'success');
+            loadResumo();
             loadContas();
         } catch (err) {
             handleApiError(err);

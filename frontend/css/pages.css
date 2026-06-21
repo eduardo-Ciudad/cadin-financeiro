@@ -23,6 +23,20 @@
     margin-bottom: var(--space-sm);
 }
 
+/* ===== PESSOAL PAGE — resumo mensal ===== */
+.resumo-pessoal-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: var(--space-md);
+    margin-bottom: var(--space-lg);
+}
+
+@media (max-width: 640px) {
+    .resumo-pessoal-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ===== PESSOAL PAGE — inline form grid ===== */
 .pessoal-form-grid {
     display: grid;
