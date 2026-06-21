@@ -32,7 +32,10 @@
                                 '<input class="form-input" type="date" id="pessoalVencimento">' +
                                 '<span class="form-error" id="dataVencimentoError"></span>' +
                             '</div>' +
-                            '<button type="submit" class="btn btn-primary pessoal-submit-btn" id="btnAdicionarConta">Adicionar</button>' +
+                            '<div class="pessoal-submit-btn" style="display:flex;gap:var(--space-sm);align-items:flex-end">' +
+                                '<button type="submit" class="btn btn-primary" id="btnAdicionarConta">Adicionar</button>' +
+                                '<button type="button" class="btn btn-secondary" id="btnAbrirParcelamento">Parcelamento</button>' +
+                            '</div>' +
                         '</div>' +
                     '</form>' +
                 '</div>' +
@@ -61,8 +64,49 @@
                 '</div>' +
             '</div>';
 
+        // Inject installment modal into body
+        var modalEl = document.createElement('div');
+        modalEl.id = 'modalParcelamento';
+        modalEl.className = 'modal-overlay';
+        modalEl.style.display = 'none';
+        modalEl.innerHTML =
+            '<div class="modal">' +
+                '<div class="modal-header">' +
+                    '<span class="modal-title">Novo Parcelamento</span>' +
+                    '<button class="modal-close" id="btnFecharParcelamento" type="button">&times;</button>' +
+                '</div>' +
+                '<div class="modal-body">' +
+                    '<form id="formParcelamento" novalidate>' +
+                        '<div class="form-group">' +
+                            '<label class="form-label" for="parcDescricao">Descrição *</label>' +
+                            '<input class="form-input" type="text" id="parcDescricao" placeholder="Ex: Geladeira Consul" autocomplete="off">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="form-label" for="parcValorTotal">Valor Total *</label>' +
+                            '<input class="form-input font-mono" type="number" id="parcValorTotal" min="0.01" step="0.01" placeholder="0,00">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="form-label" for="parcQuantidade">Nº de Parcelas *</label>' +
+                            '<input class="form-input font-mono" type="number" id="parcQuantidade" min="2" max="48" step="1" placeholder="Ex: 4">' +
+                        '</div>' +
+                        '<div class="form-group">' +
+                            '<label class="form-label" for="parcVencimento">Vencimento da 1ª Parcela *</label>' +
+                            '<input class="form-input" type="date" id="parcVencimento">' +
+                        '</div>' +
+                        '<div id="parcPreview" style="display:none;margin-top:var(--space-md)"></div>' +
+                        '<div style="display:flex;gap:var(--space-sm);justify-content:flex-end;margin-top:var(--space-lg)">' +
+                            '<button type="button" class="btn btn-secondary" id="btnCancelarParcelamento">Cancelar</button>' +
+                            '<button type="submit" class="btn btn-primary" id="btnConfirmarParcelamento">Criar Parcelas</button>' +
+                        '</div>' +
+                    '</form>' +
+                '</div>' +
+            '</div>';
+        document.body.appendChild(modalEl);
+
+        // Form events
         document.getElementById('formPessoal').addEventListener('submit', handleFormSubmit);
 
+        // Filter tabs
         document.getElementById('filterTabs').querySelectorAll('.filter-btn').forEach(function (btn) {
             btn.addEventListener('click', function () {
                 document.querySelectorAll('.filter-btn').forEach(function (b) {
@@ -75,6 +119,88 @@
                 loadContas();
             });
         });
+
+        // Modal open/close
+        document.getElementById('btnAbrirParcelamento').addEventListener('click', function () {
+            document.getElementById('modalParcelamento').style.display = 'flex';
+        });
+        document.getElementById('btnFecharParcelamento').addEventListener('click', fecharModalParcelamento);
+        document.getElementById('btnCancelarParcelamento').addEventListener('click', fecharModalParcelamento);
+        document.getElementById('modalParcelamento').addEventListener('click', function (e) {
+            if (e.target === this) fecharModalParcelamento();
+        });
+
+        // Live preview on input
+        ['parcValorTotal', 'parcQuantidade', 'parcVencimento'].forEach(function (id) {
+            document.getElementById(id).addEventListener('input', atualizarPreview);
+        });
+
+        // Parcelamento submit
+        document.getElementById('formParcelamento').addEventListener('submit', handleParcelamentoSubmit);
+    }
+
+    function fecharModalParcelamento() {
+        document.getElementById('modalParcelamento').style.display = 'none';
+        document.getElementById('formParcelamento').reset();
+        document.getElementById('parcPreview').style.display = 'none';
+        document.getElementById('parcPreview').innerHTML = '';
+    }
+
+    function atualizarPreview() {
+        var total = parseFloat(document.getElementById('parcValorTotal').value);
+        var qtd = parseInt(document.getElementById('parcQuantidade').value);
+        var dataStr = document.getElementById('parcVencimento').value;
+        var preview = document.getElementById('parcPreview');
+
+        if (!total || !qtd || qtd < 2 || !dataStr) {
+            preview.style.display = 'none';
+            return;
+        }
+
+        var valorParcela = Math.floor(total / qtd * 100) / 100;
+        var valorUltima = parseFloat((total - valorParcela * (qtd - 1)).toFixed(2));
+
+        var html = '<p style="font-size:var(--text-sm);color:var(--text-secondary);margin:0 0 var(--space-xs)">Prévia:</p>';
+        html += '<div style="display:flex;flex-direction:column;gap:2px;font-size:var(--text-sm)">';
+
+        var base = new Date(dataStr + 'T12:00:00');
+        for (var i = 0; i < qtd; i++) {
+            var d = new Date(base);
+            d.setMonth(d.getMonth() + i);
+            var valor = i === qtd - 1 ? valorUltima : valorParcela;
+            html += '<div style="display:flex;justify-content:space-between;padding:var(--space-xs) var(--space-sm);background:var(--bg-tertiary);border-radius:var(--radius-sm)">' +
+                '<span>' + (i + 1) + '/' + qtd + ' — ' + d.toLocaleDateString('pt-BR') + '</span>' +
+                '<span class="font-mono">' + formatMoney(valor) + '</span>' +
+            '</div>';
+        }
+        html += '</div>';
+
+        preview.innerHTML = html;
+        preview.style.display = 'block';
+    }
+
+    async function handleParcelamentoSubmit(e) {
+        e.preventDefault();
+        var btn = document.getElementById('btnConfirmarParcelamento');
+        setButtonLoading(btn, true);
+
+        var body = {
+            descricao: document.getElementById('parcDescricao').value.trim(),
+            valorTotal: parseFloat(document.getElementById('parcValorTotal').value),
+            quantidadeParcelas: parseInt(document.getElementById('parcQuantidade').value),
+            dataVencimentoPrimeira: document.getElementById('parcVencimento').value,
+        };
+
+        try {
+            var parcelas = await api.post('/pessoal/parcelamentos', body);
+            showToast(parcelas.length + ' parcelas criadas com sucesso.', 'success');
+            fecharModalParcelamento();
+            loadContas();
+        } catch (err) {
+            handleApiError(err);
+        } finally {
+            setButtonLoading(btn, false);
+        }
     }
 
     async function loadContas() {
