@@ -14,6 +14,7 @@
     document.addEventListener('DOMContentLoaded', function () {
         renderListSection();
         loadProdutos();
+        loadEstoqueValor();
     });
 
     /* ===========================
@@ -33,6 +34,10 @@
             '</div>' +
             '<button class="btn btn-primary" id="btnNovoProduto">+ Novo Produto</button>' +
             '</div>' +
+            '</div>' +
+            '<div class="dashboard-grid" id="estoqueResumoGrid" style="grid-template-columns:1fr 1fr;margin-bottom:var(--space-lg)">' +
+                '<div class="stat-card"><div class="stat-label">Estoque (Custo)</div><div class="stat-value text-muted">—</div></div>' +
+                '<div class="stat-card"><div class="stat-label">Estoque (Venda)</div><div class="stat-value text-muted">—</div></div>' +
             '</div>' +
             '<div class="card">' +
             '<div class="table-wrapper">' +
@@ -215,6 +220,7 @@ var valorCompra = parseFloat(produto.valorCompraEmEstoque) || 0;
         document.getElementById('listaSection').classList.remove('hidden');
         state.produtoAtual = null;
         loadProdutos();
+        loadEstoqueValor();
     }
 
     function infoItem(label, value) {
@@ -387,6 +393,28 @@ var valorCompra = parseFloat(produto.valorCompraEmEstoque) || 0;
         } catch (err) {
             setButtonLoading(btn, false);
             handleApiError(err);
+        }
+    }
+
+    /* ===========================
+       ESTOQUE — VALOR TOTAL
+    =========================== */
+    async function loadEstoqueValor() {
+        var grid = document.getElementById('estoqueResumoGrid');
+        if (!grid) return;
+        try {
+            var data = await api.get('/produtos/estoque/valor-total');
+            grid.innerHTML =
+                '<div class="stat-card">' +
+                    '<div class="stat-label">Estoque (Custo)</div>' +
+                    '<div class="stat-value">' + formatMoney(data.totalCusto || 0) + '</div>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<div class="stat-label">Estoque (Venda)</div>' +
+                    '<div class="stat-value text-success">' + formatMoney(data.totalVenda || 0) + '</div>' +
+                '</div>';
+        } catch (err) {
+            console.error('Erro ao carregar valor do estoque:', err);
         }
     }
 
