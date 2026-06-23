@@ -161,6 +161,58 @@
     flex-shrink: 0;
 }
 
+/* ===== DASHBOARD — Venda Rápida ===== */
+.venda-rapida-grid {
+    display: grid;
+    grid-template-columns: 2fr 2fr 1fr 1fr 1.5fr 1fr auto;
+    gap: var(--space-md);
+    align-items: end;
+}
+
+.venda-rapida-footer {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    align-items: stretch;
+    min-width: 148px;
+}
+
+.venda-rapida-total {
+    font-family: var(--font-mono);
+    font-size: var(--text-sm);
+    font-weight: 600;
+    color: var(--accent);
+    text-align: center;
+    white-space: nowrap;
+}
+
+@media (max-width: 1200px) {
+    .venda-rapida-grid {
+        grid-template-columns: 1fr 1fr 1fr;
+    }
+    .venda-rapida-footer {
+        grid-column: 1 / -1;
+        flex-direction: row;
+        align-items: center;
+        justify-content: flex-end;
+    }
+}
+
+@media (max-width: 640px) {
+    .venda-rapida-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+    .venda-rapida-footer {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 400px) {
+    .venda-rapida-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* ===== CLIENTES / FORNECEDORES PAGES ===== */
 .back-btn-row {
     display: flex;
