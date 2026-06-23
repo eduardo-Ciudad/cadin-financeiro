@@ -15,7 +15,6 @@
             render(data);
             setupResumoDiario();
             loadResumoMensal();
-            loadVendaRapida();
         } catch (err) {
             mainContent.innerHTML =
                 '<div class="loading-center"><p class="text-muted">Erro ao carregar dashboard. Tente recarregar a página.</p></div>';
@@ -104,52 +103,6 @@
                             '<tbody id="detalheMesTableBody"></tbody>' +
                         '</table>' +
                     '</div>' +
-                '</div>' +
-            '</section>' +
-
-            // ===== VENDA RÁPIDA =====
-            '<section class="card" id="vendaRapidaSection" style="margin-top:var(--space-xl)">' +
-                '<div class="card-header"><h4>Venda Rápida</h4></div>' +
-                '<div class="card-body">' +
-                    '<form id="formVendaRapida" novalidate>' +
-                        '<div class="venda-rapida-grid">' +
-                            '<div class="form-group">' +
-                                '<label class="form-label" for="vrCliente">Cliente</label>' +
-                                '<select id="vrCliente" class="form-input"><option value="">Carregando...</option></select>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="form-label" for="vrProduto">Produto</label>' +
-                                '<select id="vrProduto" class="form-input"><option value="">Carregando...</option></select>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="form-label" for="vrQtd">Quantidade</label>' +
-                                '<input id="vrQtd" type="number" class="form-input" min="0.01" step="0.01" placeholder="1">' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="form-label" for="vrPreco">Preço Unitário</label>' +
-                                '<input id="vrPreco" type="number" class="form-input" min="0" step="0.01" placeholder="0.00">' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="form-label" for="vrForma">Forma de Pagamento</label>' +
-                                '<select id="vrForma" class="form-input">' +
-                                    '<option value="">Selecione...</option>' +
-                                    '<option value="PIX">PIX</option>' +
-                                    '<option value="DINHEIRO">DINHEIRO</option>' +
-                                    '<option value="CARTAO">CARTÃO</option>' +
-                                    '<option value="FIADO">FIADO</option>' +
-                                '</select>' +
-                            '</div>' +
-                            '<div class="form-group">' +
-                                '<label class="form-label" for="vrData">Data</label>' +
-                                '<input id="vrData" type="date" class="form-input" value="' + todayISO() + '">' +
-                            '</div>' +
-                            '<div class="venda-rapida-footer">' +
-                                '<span class="venda-rapida-total" id="vrTotal">Total: R$ 0,00</span>' +
-                                '<button type="submit" class="btn btn-primary btn-sm" id="btnVendaRapida">Registrar Venda</button>' +
-                            '</div>' +
-                        '</div>' +
-                    '</form>' +
-                    '<div id="vendaRapidaMsg" style="display:none;margin-top:var(--space-md);padding:var(--space-md);border-radius:var(--radius-md)"></div>' +
                 '</div>' +
             '</section>';
 
@@ -561,119 +514,6 @@ function atualizarVendaHeader() {
         var partes = mes.split('-');
         var nomes = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
         return nomes[parseInt(partes[1], 10) - 1] + ' ' + partes[0];
-    }
-
-    /* ===========================
-       VENDA RÁPIDA
-    =========================== */
-    async function loadVendaRapida() {
-        var selCliente = document.getElementById('vrCliente');
-        var selProduto = document.getElementById('vrProduto');
-        var inpQtd     = document.getElementById('vrQtd');
-        var inpPreco   = document.getElementById('vrPreco');
-        var form       = document.getElementById('formVendaRapida');
-        if (!form || !selCliente || !selProduto) return;
-
-        try {
-            var results  = await Promise.all([
-                api.get('/clientes?page=0&size=200'),
-                api.get('/produtos?page=0&size=200')
-            ]);
-            var clientes = Array.isArray(results[0]) ? results[0] : (results[0].content || []);
-            var produtos  = Array.isArray(results[1]) ? results[1] : (results[1].content  || []);
-
-            selCliente.innerHTML = '<option value="">Selecione cliente...</option>' +
-                clientes.map(function (c) {
-                    return '<option value="' + c.id + '">' + escapeHtml(c.nome) + '</option>';
-                }).join('');
-
-            selProduto.innerHTML = '<option value="">Selecione produto...</option>' +
-                produtos.map(function (p) {
-                    return '<option value="' + p.id + '" data-preco="' + (p.precoVenda || 0) + '">' +
-                        escapeHtml(p.nome) + '</option>';
-                }).join('');
-        } catch (err) {
-            selCliente.innerHTML = '<option value="">Erro ao carregar</option>';
-            selProduto.innerHTML = '<option value="">Erro ao carregar</option>';
-            console.error('Erro ao carregar selects da venda rápida:', err);
-        }
-
-        selProduto.addEventListener('change', function () {
-            var opt   = this.options[this.selectedIndex];
-            var preco = opt ? parseFloat(opt.getAttribute('data-preco')) : NaN;
-            inpPreco.value = isNaN(preco) ? '' : preco.toFixed(2);
-            atualizarTotalVenda();
-        });
-
-        inpQtd.addEventListener('input', atualizarTotalVenda);
-        inpPreco.addEventListener('input', atualizarTotalVenda);
-
-        form.addEventListener('submit', function (e) {
-            e.preventDefault();
-            handleVendaRapidaSubmit();
-        });
-    }
-
-    function atualizarTotalVenda() {
-        var qtd   = parseFloat(document.getElementById('vrQtd').value)  || 0;
-        var preco = parseFloat(document.getElementById('vrPreco').value) || 0;
-        var el    = document.getElementById('vrTotal');
-        if (el) el.textContent = 'Total: ' + formatMoney(qtd * preco);
-    }
-
-    async function handleVendaRapidaSubmit() {
-        var clienteId       = document.getElementById('vrCliente').value;
-        var produtoId       = document.getElementById('vrProduto').value;
-        var quantidade      = parseFloat(document.getElementById('vrQtd').value);
-        var precoUnitario   = parseFloat(document.getElementById('vrPreco').value);
-        var formaPagamento  = document.getElementById('vrForma').value;
-        var dataCompetencia = document.getElementById('vrData').value;
-
-        if (!clienteId || !produtoId || !quantidade || !precoUnitario || !formaPagamento || !dataCompetencia) {
-            mostrarMsgVendaRapida('Preencha todos os campos antes de registrar.', false);
-            return;
-        }
-
-        var btn = document.getElementById('btnVendaRapida');
-        setButtonLoading(btn, true);
-
-        try {
-            await api.post('/vendas', {
-                clienteId:       parseInt(clienteId,  10),
-                produtoId:       parseInt(produtoId,  10),
-                quantidade:      quantidade,
-                precoUnitario:   precoUnitario,
-                formaPagamento:  formaPagamento,
-                dataCompetencia: dataCompetencia,
-            });
-
-            mostrarMsgVendaRapida('Venda registrada com sucesso!', true);
-            document.getElementById('vrCliente').value = '';
-            document.getElementById('vrProduto').value = '';
-            document.getElementById('vrQtd').value     = '';
-            document.getElementById('vrPreco').value   = '';
-            document.getElementById('vrForma').value   = '';
-            document.getElementById('vrData').value    = todayISO();
-            atualizarTotalVenda();
-        } catch (err) {
-            var msg = (err && (err.message || err.erro || err.error)) || 'Erro ao registrar a venda.';
-            mostrarMsgVendaRapida(msg, false);
-        } finally {
-            setButtonLoading(btn, false);
-        }
-    }
-
-    function mostrarMsgVendaRapida(texto, sucesso) {
-        var el = document.getElementById('vendaRapidaMsg');
-        if (!el) return;
-        el.style.display    = 'block';
-        el.style.background = sucesso ? 'rgba(16,185,129,0.12)' : 'rgba(239,68,68,0.12)';
-        el.style.border     = '1px solid ' + (sucesso ? 'var(--accent)' : 'var(--danger)');
-        el.style.color      = sucesso ? 'var(--accent)' : 'var(--danger)';
-        el.textContent      = texto;
-        if (sucesso) {
-            setTimeout(function () { el.style.display = 'none'; }, 4000);
-        }
     }
 
     document.addEventListener('DOMContentLoaded', loadDashboard);
