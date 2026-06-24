@@ -312,6 +312,14 @@ a:focus:not(:focus-visible) {
 }
 
 /* ===== PRINT ===== */
+.venda-info {
+    transition: opacity 0.15s;
+}
+
+.venda-info:hover {
+    opacity: 0.75;
+}
+
 @media print {
     .sidebar, .topbar, .action-bar, .pagination, .btn { display: none !important; }
     .main-wrapper { margin-left: 0; }

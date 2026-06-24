@@ -86,6 +86,16 @@
                 '</div>' +
             '</section>' +
 
+            '<section class="card hidden" id="vendasDetalhadasSection" style="margin-top:var(--space-lg)">' +
+                '<div class="card-header">' +
+                    '<h4 id="vendasDetalhadasTitulo">Detalhes de Vendas</h4>' +
+                    '<button class="btn btn-secondary btn-sm" id="btnFecharVendasDetalhadas">✕ Fechar</button>' +
+                '</div>' +
+                '<div class="card-body" id="vendasDetalhadasBody">' +
+                    '<div class="loading-center"><span class="spinner spinner-sm"></span></div>' +
+                '</div>' +
+            '</section>' +
+
             '<section class="card hidden" id="detalheMesSection" style="margin-top:var(--space-lg)">' +
                 '<div class="card-header">' +
                     '<h4 id="detalheMesTitulo">Detalhes</h4>' +
@@ -106,9 +116,12 @@
                 '</div>' +
             '</section>';
 
-        // Close button (once, no stacking)
+        // Close buttons (once, no stacking)
         document.getElementById('btnFecharDetalheMes').addEventListener('click', function () {
             document.getElementById('detalheMesSection').classList.add('hidden');
+        });
+        document.getElementById('btnFecharVendasDetalhadas').addEventListener('click', function () {
+            document.getElementById('vendasDetalhadasSection').classList.add('hidden');
         });
     }
 
@@ -326,6 +339,19 @@ function atualizarVendaHeader() {
             atualizarVendaHeader();
         }
     });
+
+    var vendaInfo = container.querySelector('.venda-info');
+    if (vendaInfo) {
+        vendaInfo.style.cursor = 'pointer';
+        vendaInfo.title = 'Clique para ver detalhes';
+        vendaInfo.addEventListener('click', function () {
+            var dados = window._vendaHeaderDados;
+            var idx = window._vendaHeaderIndex;
+            if (dados && dados[idx]) {
+                loadVendasDetalhadas(dados[idx].mes);
+            }
+        });
+    }
 }
 
     function renderGrafico(dados) {
@@ -499,6 +525,210 @@ function atualizarVendaHeader() {
             tbody.innerHTML = '<tr><td colspan="4" class="table-empty">Erro ao carregar detalhes.</td></tr>';
             handleApiError(err);
         }
+    }
+
+    /* ===========================
+       VENDAS DETALHADAS
+    =========================== */
+    async function loadVendasDetalhadas(mes) {
+        var section = document.getElementById('vendasDetalhadasSection');
+        var body    = document.getElementById('vendasDetalhadasBody');
+        var titulo  = document.getElementById('vendasDetalhadasTitulo');
+
+        section.classList.remove('hidden');
+        section.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        titulo.textContent = 'Vendas — ' + formatMesLabelFull(mes);
+        body.innerHTML = '<div class="loading-center"><span class="spinner spinner-sm"></span></div>';
+
+        try {
+            var vendas = await api.get('/vendas?mes=' + mes);
+
+            var clientesData = await api.get('/clientes?page=0&size=200');
+            var clientes = Array.isArray(clientesData) ? clientesData : (clientesData.content || []);
+            var clienteMap = {};
+            clientes.forEach(function (c) { clienteMap[c.id] = c.nome; });
+
+            if (!vendas.length) {
+                body.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-xl)">Nenhuma venda registrada neste mês.</p>';
+                return;
+            }
+
+            body.innerHTML = renderVendasDetalhadas(vendas, clienteMap);
+        } catch (err) {
+            body.innerHTML = '<p class="text-muted text-center" style="padding:var(--space-xl)">Erro ao carregar detalhes de vendas.</p>';
+            console.error('Erro vendas detalhadas:', err);
+        }
+    }
+
+    function renderVendasDetalhadas(vendas, clienteMap) {
+        var produtoMap   = {};
+        var compradorMap = {};
+        var totalReceita = 0;
+        var totalCusto   = 0;
+
+        vendas.forEach(function (venda) {
+            var clienteId   = venda.clienteId;
+            var clienteNome = clienteMap[clienteId] || ('Cliente #' + clienteId);
+
+            if (!compradorMap[clienteId]) {
+                compradorMap[clienteId] = { nome: clienteNome, totalGasto: 0, qtdCompras: 0 };
+            }
+            compradorMap[clienteId].totalGasto  += parseFloat(venda.valor) || 0;
+            compradorMap[clienteId].qtdCompras++;
+
+            (venda.itens || []).forEach(function (item) {
+                var pid = item.produtoId;
+                if (!produtoMap[pid]) {
+                    produtoMap[pid] = { nome: item.nomeProduto, qtdTotal: 0, receitaTotal: 0, custoTotal: 0 };
+                }
+                var qty      = parseFloat(item.quantidade)    || 0;
+                var precoUnit = parseFloat(item.precoUnitario) || 0;
+                var custoUnit = parseFloat(item.precoCusto)    || 0;
+
+                produtoMap[pid].qtdTotal     += qty;
+                produtoMap[pid].receitaTotal += qty * precoUnit;
+                produtoMap[pid].custoTotal   += qty * custoUnit;
+            });
+        });
+
+        var produtos = Object.values(produtoMap);
+        produtos.forEach(function (p) {
+            totalReceita += p.receitaTotal;
+            totalCusto   += p.custoTotal;
+        });
+
+        var lucro     = totalReceita - totalCusto;
+        var margemPct = totalReceita > 0 ? ((lucro / totalReceita) * 100).toFixed(1) : '0.0';
+        var lucroCor  = lucro >= 0 ? 'text-success' : 'text-danger';
+
+        produtos.sort(function (a, b) { return b.receitaTotal - a.receitaTotal; });
+
+        var compradores = Object.values(compradorMap);
+        compradores.sort(function (a, b) { return b.totalGasto - a.totalGasto; });
+
+        // Cards de resumo
+        var html =
+            '<div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:var(--space-xl)">' +
+                '<div class="stat-card">' +
+                    '<div class="stat-label">Receita Total</div>' +
+                    '<div class="stat-value text-success">' + formatMoney(totalReceita) + '</div>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<div class="stat-label">Custo Total</div>' +
+                    '<div class="stat-value text-danger">' + formatMoney(totalCusto) + '</div>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<div class="stat-label">Lucro Bruto</div>' +
+                    '<div class="stat-value ' + lucroCor + '">' + formatMoney(lucro) + '</div>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<div class="stat-label">Margem</div>' +
+                    '<div class="stat-value ' + lucroCor + '">' + margemPct + '%</div>' +
+                '</div>' +
+                '<div class="stat-card">' +
+                    '<div class="stat-label">Total de Vendas</div>' +
+                    '<div class="stat-value">' + vendas.length + '</div>' +
+                '</div>' +
+            '</div>';
+
+        // Tabela de produtos
+        html +=
+            '<h5 class="lancamentos-section-title">Produtos Vendidos</h5>' +
+            '<div class="table-wrapper" style="margin-bottom:var(--space-xl)">' +
+                '<table class="table">' +
+                    '<thead><tr>' +
+                        '<th>Produto</th>' +
+                        '<th class="text-right">Qtd Vendida</th>' +
+                        '<th class="text-right">Receita</th>' +
+                        '<th class="text-right">Custo</th>' +
+                        '<th class="text-right">Lucro</th>' +
+                        '<th class="text-right">Margem</th>' +
+                    '</tr></thead>' +
+                    '<tbody>';
+
+        produtos.forEach(function (p) {
+            var pLucro  = p.receitaTotal - p.custoTotal;
+            var pMargem = p.receitaTotal > 0 ? ((pLucro / p.receitaTotal) * 100).toFixed(1) : '0.0';
+            var cor     = pLucro >= 0 ? 'text-success' : 'text-danger';
+
+            html +=
+                '<tr>' +
+                    '<td><strong>' + escapeHtml(p.nome) + '</strong></td>' +
+                    '<td class="text-right font-mono">' + formatQtd(p.qtdTotal) + '</td>' +
+                    '<td class="text-right font-mono text-success">' + formatMoney(p.receitaTotal) + '</td>' +
+                    '<td class="text-right font-mono text-danger">' + formatMoney(p.custoTotal) + '</td>' +
+                    '<td class="text-right font-mono ' + cor + '">' + formatMoney(pLucro) + '</td>' +
+                    '<td class="text-right font-mono ' + cor + '">' + pMargem + '%</td>' +
+                '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+
+        // Tabela de compradores
+        html +=
+            '<h5 class="lancamentos-section-title">Clientes que Compraram</h5>' +
+            '<div class="table-wrapper" style="margin-bottom:var(--space-xl)">' +
+                '<table class="table">' +
+                    '<thead><tr>' +
+                        '<th>Cliente</th>' +
+                        '<th class="text-right">Compras</th>' +
+                        '<th class="text-right">Total Gasto</th>' +
+                    '</tr></thead>' +
+                    '<tbody>';
+
+        compradores.forEach(function (c) {
+            html +=
+                '<tr>' +
+                    '<td><strong>' + escapeHtml(c.nome) + '</strong></td>' +
+                    '<td class="text-right font-mono">' + c.qtdCompras + '</td>' +
+                    '<td class="text-right font-mono">' + formatMoney(c.totalGasto) + '</td>' +
+                '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+
+        // Tabela de vendas individuais
+        vendas.sort(function (a, b) {
+            return (a.dataCompetencia || '').localeCompare(b.dataCompetencia || '');
+        });
+
+        html +=
+            '<h5 class="lancamentos-section-title">Vendas Individuais</h5>' +
+            '<div class="table-wrapper">' +
+                '<table class="table">' +
+                    '<thead><tr>' +
+                        '<th>Data</th>' +
+                        '<th>Cliente</th>' +
+                        '<th>Produtos</th>' +
+                        '<th>Forma Pgto</th>' +
+                        '<th class="text-right">Valor</th>' +
+                    '</tr></thead>' +
+                    '<tbody>';
+
+        vendas.forEach(function (v) {
+            var clienteNome  = clienteMap[v.clienteId] || ('Cliente #' + v.clienteId);
+            var produtosStr  = (v.itens || []).map(function (i) {
+                return escapeHtml(i.nomeProduto) + ' (' + formatQtd(parseFloat(i.quantidade)) + ')';
+            }).join(', ') || '—';
+
+            html +=
+                '<tr>' +
+                    '<td class="font-mono text-sm">' + formatDate(v.dataCompetencia) + '</td>' +
+                    '<td><strong>' + escapeHtml(clienteNome) + '</strong></td>' +
+                    '<td class="text-sm">' + produtosStr + '</td>' +
+                    '<td>' + escapeHtml(v.formaPagamento || '—') + '</td>' +
+                    '<td class="text-right font-mono text-success">' + formatMoney(parseFloat(v.valor) || 0) + '</td>' +
+                '</tr>';
+        });
+
+        html += '</tbody></table></div>';
+
+        return html;
+    }
+
+    function formatQtd(n) {
+        if (n === Math.floor(n)) return n.toFixed(0);
+        return n.toFixed(2).replace('.', ',');
     }
 
     /* ===========================
