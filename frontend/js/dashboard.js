@@ -608,7 +608,7 @@ function atualizarVendaHeader() {
 
         // Cards de resumo
         var html =
-            '<div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit,minmax(160px,1fr));margin-bottom:var(--space-xl)">' +
+            '<div class="dashboard-grid" style="grid-template-columns:repeat(auto-fit,minmax(220px,1fr));margin-bottom:var(--space-xl)">' +
                 '<div class="stat-card">' +
                     '<div class="stat-label">Receita Total</div>' +
                     '<div class="stat-value text-success">' + formatMoney(totalReceita) + '</div>' +
