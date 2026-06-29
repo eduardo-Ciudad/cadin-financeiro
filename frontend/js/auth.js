@@ -2,7 +2,7 @@
 (function () {
     function requireAuth() {
         if (!getToken()) {
-            window.location.href = 'index.html';
+window.location.href = '/frontend/index.html';
             return false;
         }
         return true;
