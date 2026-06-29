@@ -1,10 +1,12 @@
 {
   "permissions": {
+    "allow": [
+      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\eduar\\\\financial-control\" -Recurse -Depth 3 | Where-Object { !$_.PSIsContainer } | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"c:\\\\Users\\\\eduar\\\\financial-control\\\\\", \"\"\\) })",
+      "Bash(git add *)",
+      "Bash(git commit *)"
+    ],
     "additionalDirectories": [
       "c:\\Users\\eduar\\financial-control\\frontend"
-    ],
-    "allow": [
-      "PowerShell(Get-ChildItem \"c:\\\\Users\\\\eduar\\\\financial-control\" -Recurse -Depth 3 | Where-Object { !$_.PSIsContainer } | Select-Object FullName | ForEach-Object { $_.FullName.Replace\\(\"c:\\\\Users\\\\eduar\\\\financial-control\\\\\", \"\"\\) })"
     ]
   }
 }
